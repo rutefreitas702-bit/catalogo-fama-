@@ -1,0 +1,368 @@
+{
+ "url": "http://localhost:8765/index.html",
+ "date": "2026-11-11T15:10:15.826Z",
+ "horaLoja": "wed 12:10",
+ "categoriasExibidas": 9,
+ "categoriasOcultasNoOriginal": [
+  "PROMOÇÃO PIZZAS",
+  "MASSAS E SUPREMO PROMOÇÃO",
+  "ACAI, VITAMINAS E SUCO PROMOÇÃO",
+  "COMBOS FAMA",
+  "Massas",
+  "Batatas Assadas",
+  "Refeições",
+  "Açaí",
+  "Caldos",
+  "Combo a Volta do Fama"
+ ],
+ "produtosExibidos": 43,
+ "verificacoes": 999,
+ "cardsDeOpcao": 0,
+ "problemas": [],
+ "linhas": [
+  {
+   "cat": "PROMOÇÃO LANCHES",
+   "item": "X TUDO + PEITO PROMOÇÃO PITCHULINHA",
+   "orig": "R$ 28,90",
+   "novo": "R$ 28,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "PROMOÇÃO LANCHES",
+   "item": "Cheddar Bacon Búrguer artesanal R$24,90 (PROMOÇÃO)",
+   "orig": "R$ 25,90",
+   "novo": "R$ 25,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "PROMOÇÃO LANCHES",
+   "item": "FAMA TICKEN BURGUER+ FRITAS ESPECIAL P",
+   "orig": "R$ 24,90",
+   "novo": "R$ 24,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Lanches",
+   "item": "Pizza Búrguer Cheddar e Bacon (Médio)",
+   "orig": "R$ 65,90",
+   "novo": "R$ 65,90",
+   "ok": true,
+   "opts": 2
+  },
+  {
+   "cat": "Lanches",
+   "item": "Pizza Búrguer Cheddar e Bacon (Grande)",
+   "orig": "R$ 95,90",
+   "novo": "R$ 95,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Lanches",
+   "item": "Acréscimo Abacaxi Caramelizado",
+   "orig": "R$ 5,00",
+   "novo": "R$ 5,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Lanches",
+   "item": "Burguers Bovinos Artesanais",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 20,00",
+   "ok": true,
+   "opts": 24
+  },
+  {
+   "cat": "Lanches",
+   "item": "Sanduíches Carne De Hambúguer",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 19,00",
+   "ok": true,
+   "opts": 37
+  },
+  {
+   "cat": "Lanches",
+   "item": "Sanduíches Com Filé De Boi",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 24,00",
+   "ok": true,
+   "opts": 26
+  },
+  {
+   "cat": "Lanches",
+   "item": "Sanduíches Filé De Frango",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 24,00",
+   "ok": true,
+   "opts": 23
+  },
+  {
+   "cat": "Lanches",
+   "item": "Sanduíches Picanha Búrguer",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 23,00",
+   "ok": true,
+   "opts": 28
+  },
+  {
+   "cat": "Lanches",
+   "item": "Omeletao",
+   "orig": "R$ 33,00",
+   "novo": "R$ 33,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Supremo De Frango",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 69,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Supremo De Frango Individual",
+   "orig": "R$ 35,00",
+   "novo": "R$ 35,00",
+   "ok": true,
+   "opts": 1
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Supremo De Frango Com Bacon",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 77,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Salada Completa (Alface, Tomate, Cenoura, Palmito E Alcaparras).",
+   "orig": "R$ 12,00",
+   "novo": "R$ 12,00",
+   "ok": true,
+   "opts": 1
+  },
+  {
+   "cat": "Pizzas",
+   "item": "Gigante",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 65,00",
+   "ok": true,
+   "opts": 18
+  },
+  {
+   "cat": "Pizzas",
+   "item": "Média",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 40,00",
+   "ok": true,
+   "opts": 18
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Refrigerantes",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 8,00",
+   "ok": true,
+   "opts": 14
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Cervejas",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 10,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Energéticos Red Bull",
+   "orig": "R$ 16,00",
+   "novo": "R$ 16,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Água",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 4,00",
+   "ok": true,
+   "opts": 3
+  },
+  {
+   "cat": "Bebidas",
+   "item": "H2oh!",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 10,00",
+   "ok": true,
+   "opts": 1
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco Lata Del Valle",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 8,00",
+   "ok": true,
+   "opts": 1
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Vinhos",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 22,00",
+   "ok": true,
+   "opts": 1
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco Le Verger",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 10,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Porções",
+   "item": "Porções",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 10,00",
+   "ok": true,
+   "opts": 6
+  },
+  {
+   "cat": "Porções",
+   "item": "Batata Frita Especial (Chapa)",
+   "orig": "R$ 10,00",
+   "novo": "R$ 10,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Porções",
+   "item": "Acréscimo De Bacon (Cozinha",
+   "orig": "R$ 8,00",
+   "novo": "R$ 8,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Porções",
+   "item": "Porção De Bacon",
+   "orig": "R$ 9,00",
+   "novo": "R$ 9,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Sorvetes",
+   "item": "Picole Mais Fruta",
+   "orig": "R$ 7,90",
+   "novo": "R$ 7,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Sorvetes",
+   "item": "Sorvetes Sol & Neve",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 5,50",
+   "ok": true,
+   "opts": 19
+  },
+  {
+   "cat": "Molhos",
+   "item": "Molho Pequeno",
+   "orig": "R$ 2,00",
+   "novo": "R$ 2,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Molhos",
+   "item": "3 Ketchup",
+   "orig": "R$ 0,15",
+   "novo": "R$ 0,15",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Chocolates",
+   "item": "KINDER OVO BARBIE",
+   "orig": "R$ 14,00",
+   "novo": "R$ 14,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Chocolates",
+   "item": "KINDER OVO HOTWHEELS",
+   "orig": "R$ 14,00",
+   "novo": "R$ 14,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Chocolates",
+   "item": "Chocolates",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 1,50",
+   "ok": true,
+   "opts": 15
+  },
+  {
+   "cat": "Chocolates",
+   "item": "Halls",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 5,00",
+   "ok": true,
+   "opts": 6
+  },
+  {
+   "cat": "Chocolates",
+   "item": "Chicletes - Trident",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 5,00",
+   "ok": true,
+   "opts": 7
+  },
+  {
+   "cat": "Chocolates",
+   "item": "Ferrero Rocher",
+   "orig": "R$ 14,00",
+   "novo": "R$ 14,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Chocolates",
+   "item": "Tic Tac Frutas",
+   "orig": "R$ 3,50",
+   "novo": "R$ 3,50",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Chocolates",
+   "item": "Doces - Paçoca",
+   "orig": "R$ 1,50",
+   "novo": "R$ 1,50",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Chocolates",
+   "item": "KINDER OVO STRANGER THINGS",
+   "orig": "R$ 15,00",
+   "novo": "R$ 15,00",
+   "ok": true,
+   "opts": 0
+  }
+ ]
+}
