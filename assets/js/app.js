@@ -230,15 +230,14 @@ window.iniciarFama = function () {
     $('#footer').innerHTML =
       '<div><div class="brandline"><img src="assets/img/logo-fama.png" alt="Logo Fama Burguer" width="72" height="72"><strong>Fama Burguer<br><span style="color:var(--mustard)">e Pizzaria</span></strong></div>' +
       '<p>' + esc(S.address) + '</p><ul class="contact-list">' +
-      '<li>WhatsApp: <a href="' + waLink() + '" target="_blank" rel="noopener">' + esc(fmtPhone(S.whatsapp)) + '</a></li>' + phones +
-      '<li><a href="' + esc(S.orderUrl) + '" target="_blank" rel="noopener">Cardápio oficial e pedidos online (Anota AI) ↗</a></li></ul>' +
+      '<li>WhatsApp: <a href="' + waLink() + '" target="_blank" rel="noopener">' + esc(fmtPhone(S.whatsapp)) + '</a></li>' + phones + '</ul>' +
       '<p style="margin-top:14px">Atendemos: ' + [S.accept.delivery && 'Entrega', S.accept.take && 'Retirada', S.accept.local && 'Consumo no local'].filter(Boolean).join(' · ') + '</p></div>' +
       '<div><h3>Horários</h3><table class="hours"><tbody>' + hours + '</tbody></table>' +
-      '<h3 style="margin-top:26px">Pagamento</h3><p>' + [S.pay.money && 'Dinheiro', S.pay.card && 'Cartão na entrega', S.pay.pix && 'Pix', S.pay.online && 'Pagamento online pelo site oficial'].filter(Boolean).join(' · ') + '</p>' +
+      '<h3 style="margin-top:26px">Pagamento</h3><p>' + [S.pay.money && 'Dinheiro', S.pay.card && 'Cartão na entrega', S.pay.pix && 'Pix'].filter(Boolean).join(' · ') + '</p>' +
       (S.pay.cards.length ? '<p>Bandeiras: ' + S.pay.cards.map(esc).join(', ') + '</p>' : '') + '</div>' +
       '<div><h3>Taxas de entrega</h3><div class="regions" data-lenis-prevent><table><tbody>' + regions + '</tbody></table></div></div>';
     var dt = (S.menuUpdatedAt || '').slice(0, 10).split('-').reverse().join('/');
-    $('#sourceNote').textContent = 'Produtos, preços, horários e taxas exibidos exatamente como no cardápio digital oficial da loja (Anota AI)' + (dt ? ', atualizado em ' + dt : '') + '. Fotos originais da loja, aprimoradas em resolução.';
+    $('#sourceNote').textContent = 'Cardápio oficial da Fama Burguer e Pizzaria' + (dt ? ', atualizado em ' + dt : '') + '. Fotos originais da loja.';
     $('#heroSegments').textContent = S.segments.join(' · ');
     $('#heroWhats').href = waLink();
   }
@@ -507,7 +506,7 @@ window.iniciarFama = function () {
       (issues.length ? '<p class="note note--warn">' + issues.join(' ') + '</p>' : '') +
       '<p class="pd__err" id="coErr" hidden></p>' +
       '<a class="btn btn--ketchup btn--block" id="sendWhats" href="#" target="_blank" rel="noopener"' + (issues.length ? ' aria-disabled="true"' : '') + '>Enviar pedido pelo WhatsApp · ' + money(total) + '</a>' +
-      '<p class="note">O pedido abre no WhatsApp da loja (' + esc(fmtPhone(S.whatsapp)) + ') com todos os itens. A loja confirma o pedido e o total por lá.<br>Prefere pagar online? <a href="' + esc(S.orderUrl) + '" target="_blank" rel="noopener" style="color:var(--mustard)">Faça o pedido no cardápio oficial ↗</a></p>' +
+      '<p class="note">O pedido abre no WhatsApp da loja (' + esc(fmtPhone(S.whatsapp)) + ') com todos os itens. A loja confirma o pedido e o total por lá.</p>' +
       '<button type="button" class="link-btn" id="clearCart">Esvaziar pedido</button></form>';
     updateWhatsHref();
   }

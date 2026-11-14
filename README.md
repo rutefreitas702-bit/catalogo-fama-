@@ -1,6 +1,6 @@
 # Fama Burguer e Pizzaria — catálogo digital
 
-Nova apresentação do cardápio oficial da loja (Anota AI: `pedido.anota.ai/loja/fama-lanches-e-pizzaria`).
+Site e cardápio digital próprios da Fama Burguer e Pizzaria (Manhuaçu - MG), com painel administrativo em `/admin`. O conteúdo inicial foi importado do antigo cardápio da loja.
 O conteúdo comercial (categorias, produtos, descrições, preços, opções, adicionais, horários, taxas de entrega,
 formas de pagamento e contatos) vem **exclusivamente** do cardápio original. Nada foi inventado ou alterado.
 
