@@ -124,7 +124,8 @@ window.iniciarFama = function () {
   /* ================= visibilidade: igual ao cardápio original =================
      O original não mostra itens/opções esgotados, categorias vazias nem categorias fora do horário. */
   function visOpts(g) { return g ? g.opts.filter(function (o) { return !o.out; }) : []; }
-  function visibleItem(it) { return !it.out && isActiveNow(it.off); }
+  // esgotado some do site, a menos que a loja escolha mostrar com selo "Esgotado" (configuração do painel)
+  function visibleItem(it) { return (!it.out || !!S.showSoldOut) && isActiveNow(it.off); }
   function visibleItems(cat) { return isActiveNow(cat.off) ? cat.items.filter(visibleItem) : []; }
   function visibleCats() { return D.categories.filter(function (c) { return visibleItems(c).length > 0; }); }
 
@@ -146,7 +147,8 @@ window.iniciarFama = function () {
   function priceHTML(it) {
     var p = displayPrice(it);
     if (!p) return '';
-    return '<span class="price">' + (p.from ? '<small>A partir de</small>' : '') + money(p.v) + '</span>';
+    var antes = !p.from && it.pOld ? '<s class="price__old">' + money(it.pOld) + '</s>' : '';
+    return '<span class="price">' + (p.from ? '<small>A partir de</small>' : '') + antes + money(p.v) + '</span>';
   }
 
   /* ================= estrutura ================= */
@@ -162,9 +164,12 @@ window.iniciarFama = function () {
   /* ================= render: catálogo ================= */
   function cardHTML(cat, it) {
     var desc = it.d ? '<p class="card__desc">' + esc(it.d) + '</p>' : '';
-    return '<button type="button" class="card reveal' + (it.img ? '' : ' card--noimg') + '" data-open="' + it.id + '">' +
-      (it.img ? '<div class="card__img">' + mediaHTML(it.img, it.t) + '</div>' : '') +
-      '<div class="card__body"><h3 class="card__title">' + esc(it.t) + '</h3>' + desc +
+    var selos = (it.out ? '<span class="tag tag--out">Esgotado</span>' : '') + (it.novo ? '<span class="tag tag--novo">Novo</span>' : '') +
+      (it.pOld ? '<span class="tag tag--promo">Promoção</span>' : '');
+    return '<button type="button" class="card reveal' + (it.img ? '' : ' card--noimg') + (it.out ? ' is-out' : '') + '" data-open="' + it.id + '">' +
+      (it.img ? '<div class="card__img">' + mediaHTML(it.img, it.t) + (selos ? '<div class="card__tags">' + selos + '</div>' : '') + '</div>' : '') +
+      '<div class="card__body">' + (!it.img && selos ? '<div class="card__tags card__tags--inline">' + selos + '</div>' : '') +
+      '<h3 class="card__title">' + esc(it.t) + '</h3>' + (it.chamada ? '<p class="card__chamada">' + esc(it.chamada) + '</p>' : '') + desc +
       '<div class="card__foot">' + priceHTML(it) + '<span class="add-dot" aria-hidden="true">+</span></div></div></button>';
   }
   var DRIP_PATH = 'M0 0h120v6c-6 0-8 3-9 9-1 8-3 13-7 13s-6-5-6-12c0-4-2-6-6-6s-5 3-6 7c-1 5-2 8-5 8s-4-3-4-7c0-5-2-8-7-8H0z';
@@ -309,11 +314,30 @@ window.iniciarFama = function () {
     });
     return errs;
   }
+  /* campos extras cadastrados no painel: ingredientes, diferenciais, informações, fotos e vídeo */
+  function extrasHTML(it) {
+    var h = '';
+    var chips = function (lista, titulo) {
+      return lista && lista.length ? '<div class="pd__bloco"><h3>' + titulo + '</h3><ul class="pd__chips">' +
+        lista.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' : '';
+    };
+    h += chips(it.ingredientes, 'Ingredientes') + chips(it.diferenciais, 'Diferenciais');
+    if (it.info) h += '<div class="pd__bloco"><h3>Informações</h3><p class="pd__info">' + esc(it.info) + '</p></div>';
+    var fotos = (it.midias || []).filter(function (m) { return m.tipo === 'foto'; });
+    if (fotos.length > 1) h += '<div class="pd__bloco"><h3>Fotos</h3><div class="pd__galeria">' + fotos.map(function (m, i) {
+      return '<button type="button" class="pd__miniatura" data-foto="' + esc(m.url) + '" aria-label="Ver foto ' + (i + 1) + '"><img src="' + esc(m.url) + '" alt="" loading="lazy" width="120" height="120"></button>';
+    }).join('') + '</div></div>';
+    var video = (it.midias || []).find(function (m) { return m.tipo === 'video'; });
+    if (video) h += '<div class="pd__bloco"><h3>Vídeo</h3><video class="pd__video" src="' + esc(video.url) + '" controls playsinline preload="metadata"></video></div>';
+    var link = (it.midias || []).find(function (m) { return m.tipo === 'link'; });
+    if (link && /^https:\/\//.test(link.url)) h += '<div class="pd__bloco"><a class="btn btn--ghost" href="' + esc(link.url) + '" target="_blank" rel="noopener">▶ Ver o vídeo</a></div>';
+    return h;
+  }
   function renderProduct(keepScroll) {
     var it = current.it, cat = current.cat;
     var panel = $('#productSheet .sheet__panel');
     var st = keepScroll ? panel.scrollTop : 0;
-    var blocked = !visibleItem(it) || !isActiveNow(cat.off);
+    var blocked = it.out || !visibleItem(it) || !isActiveNow(cat.off);
     var unit = unitPrice();
     var maxQ = it.max > 0 ? it.max : 99;
     var heroImg = it.img;
@@ -322,8 +346,9 @@ window.iniciarFama = function () {
     $('#productBody').innerHTML =
       (heroImg ? '<div class="pd__media"><div class="pd__media-inner">' + mediaHTML(heroImg, it.t) + '</div></div>' : '') +
       '<div class="pd__main"><p class="pd__cat">' + esc(trimT(cat.t)) + '</p><h2 class="pd__title" id="pTitle">' + esc(trimT(it.t)) + '</h2>' +
+      (it.chamada ? '<p class="pd__chamada">' + esc(it.chamada) + '</p>' : '') +
       (it.d ? '<p class="pd__desc">' + esc(it.d) + '</p>' : '') +
-      (p ? '<div class="pd__price">' + priceHTML(it) + '</div>' : '') + notice +
+      (p ? '<div class="pd__price">' + priceHTML(it) + '</div>' : '') + notice + extrasHTML(it) +
       stepsHTML(it.steps, '', 0) +
       '<div class="pd__note"><label for="pObs">Alguma observação?</label><textarea id="pObs" maxlength="140" placeholder="Ex.: sem cebola, ponto da carne…">' + esc(current.obs || '') + '</textarea></div>' +
       '<p class="pd__err" id="pErr" hidden></p>' +
@@ -348,6 +373,12 @@ window.iniciarFama = function () {
     openLayer('#productSheet');
   }
   function onProductClick(e) {
+    var mini = e.target.closest('[data-foto]');
+    if (mini) {
+      var principal = $('#productBody .pd__media img');
+      if (principal) { principal.src = mini.dataset.foto; principal.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      return;
+    }
     var t = e.target.closest('[data-toggle],[data-inc],[data-dec],#qInc,#qDec,#addBtn');
     if (!t || !current) return;
     if (t.id === 'qInc') { current.qty++; renderProduct(true); return; }

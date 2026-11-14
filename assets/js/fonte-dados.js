@@ -65,8 +65,11 @@
         id: String(c.id), t: c.nome, type: c.tipo === 'pizza' ? 'pizza' : 'simple_item', order: c.ordem,
         promo: !!c.mostrar_selo_promocao, off: c.fora_do_ar || [],
         items: produtos.filter(function (p) { return p.categoria_id === c.id; }).map(function (p) {
+          // preço promocional válido (menor que o normal) vira o preço cobrado; o normal aparece riscado
+          var preco = num(p.preco), promo = num(p.preco_promocional);
+          var temPromo = promo != null && promo > 0 && preco > 0 && promo < preco;
           var it = {
-            id: String(p.id), t: p.nome, d: p.descricao || '', p: num(p.preco), out: !p.disponivel,
+            id: String(p.id), t: p.nome, d: p.descricao || '', p: temPromo ? promo : preco, pOld: temPromo ? preco : null, out: !p.disponivel,
             img: capa[p.id] ? urlMidia(capa[p.id].caminho) : null,
             max: p.max_por_pedido == null ? -1 : p.max_por_pedido,
             steps: etapasDe('produto_id', p.id),

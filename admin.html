@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel da Fama</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f0b08">
+<link rel="icon" href="assets/img/logo-fama.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+<!-- ============ ENTRAR ============ -->
+<section class="auth" id="telaLogin" hidden>
+  <div class="auth__card">
+    <img class="auth__logo" src="assets/img/logo-fama.png" alt="Logo Fama Burguer" width="88" height="88">
+    <h1>Painel da Fama</h1>
+    <p class="auth__sub">Entre para cadastrar e editar os produtos do cardápio.</p>
+
+    <form id="formLogin" class="form" novalidate>
+      <div class="campo">
+        <label for="loginEmail">E-mail</label>
+        <input id="loginEmail" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <div class="campo">
+        <label for="loginSenha">Senha</label>
+        <div class="senha">
+          <input id="loginSenha" type="password" autocomplete="current-password" required>
+          <button type="button" class="senha__ver" data-ver="loginSenha" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <p class="msg msg--erro" id="loginErro" hidden></p>
+      <button class="btn btn--primario btn--bloco" type="submit" id="btnEntrar">Entrar</button>
+      <button class="btn-link" type="button" id="btnEsqueci">Esqueci minha senha</button>
+    </form>
+
+    <form id="formEsqueci" class="form" novalidate hidden>
+      <p class="dica">Digite o seu e-mail. Vamos enviar um link para você criar uma senha nova.</p>
+      <div class="campo">
+        <label for="esqueciEmail">E-mail</label>
+        <input id="esqueciEmail" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <p class="msg" id="esqueciMsg" hidden></p>
+      <button class="btn btn--primario btn--bloco" type="submit">Enviar link</button>
+      <button class="btn-link" type="button" id="btnVoltarLogin">Voltar para entrar</button>
+    </form>
+
+    <form id="formNovaSenha" class="form" novalidate hidden>
+      <p class="dica">Crie a sua senha nova. Use pelo menos 8 caracteres.</p>
+      <div class="campo">
+        <label for="novaSenha">Senha nova</label>
+        <div class="senha">
+          <input id="novaSenha" type="password" autocomplete="new-password" minlength="8" required>
+          <button type="button" class="senha__ver" data-ver="novaSenha" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <p class="msg" id="novaSenhaMsg" hidden></p>
+      <button class="btn btn--primario btn--bloco" type="submit">Salvar senha nova</button>
+    </form>
+  </div>
+  <p class="auth__rodape"><a href="./">← Voltar para o cardápio</a></p>
+</section>
+
+<!-- ============ PAINEL ============ -->
+<div class="app" id="telaPainel" hidden>
+  <header class="topo">
+    <div class="topo__marca">
+      <img src="assets/img/logo-fama.png" alt="" width="36" height="36">
+      <div><strong>Painel da Fama</strong><span id="topoLoja"></span></div>
+    </div>
+    <div class="topo__acoes">
+      <a class="btn btn--fantasma btn--peq" href="./" target="_blank" rel="noopener">Ver o site ↗</a>
+      <button class="btn btn--fantasma btn--peq" id="btnSair" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    <div class="cabecalho">
+      <div>
+        <h1>Produtos</h1>
+        <p class="dica" id="resumo"></p>
+      </div>
+      <button class="btn btn--primario btn--grande" id="btnNovo" type="button"><span aria-hidden="true">＋</span> Adicionar produto</button>
+    </div>
+
+    <div class="abas" role="tablist" id="abas">
+      <button type="button" role="tab" class="aba is-ativa" data-aba="cardapio" aria-selected="true">No cardápio <b data-conta="cardapio">0</b></button>
+      <button type="button" role="tab" class="aba" data-aba="esgotados" aria-selected="false">Esgotados <b data-conta="esgotados">0</b></button>
+      <button type="button" role="tab" class="aba" data-aba="destaques" aria-selected="false">Destaques <b data-conta="destaques">0</b></button>
+      <button type="button" role="tab" class="aba" data-aba="arquivados" aria-selected="false">Arquivados <b data-conta="arquivados">0</b></button>
+    </div>
+
+    <div class="filtros">
+      <div class="busca">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+        <input id="busca" type="search" placeholder="Buscar produto pelo nome" aria-label="Buscar produto">
+      </div>
+      <select id="filtroCategoria" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+    </div>
+
+    <p class="explica" id="explicaAba"></p>
+    <div class="lista" id="lista" aria-live="polite"></div>
+  </main>
+</div>
+
+<!-- ============ EDITOR DE PRODUTO ============ -->
+<div class="editor" id="editor" role="dialog" aria-modal="true" aria-labelledby="editorTitulo" hidden>
+  <div class="editor__painel">
+    <header class="editor__topo">
+      <button type="button" class="btn-icone" id="editorFechar" aria-label="Fechar sem salvar">✕</button>
+      <h2 id="editorTitulo">Novo produto</h2>
+      <button type="button" class="btn btn--primario btn--peq" id="editorSalvarTopo">Salvar</button>
+    </header>
+    <nav class="passos" id="passos" aria-label="Passos do cadastro">
+      <button type="button" class="passo is-atual" data-passo="0"><b>1</b>Básico</button>
+      <button type="button" class="passo" data-passo="1"><b>2</b>Detalhes</button>
+      <button type="button" class="passo" data-passo="2"><b>3</b>Opções</button>
+      <button type="button" class="passo" data-passo="3"><b>4</b>Exibição</button>
+    </nav>
+
+    <div class="editor__corpo">
+      <form id="formProduto" class="form" novalidate>
+        <!-- PASSO 1 -->
+        <section class="etapa" data-etapa="0">
+          <div class="campo">
+            <span class="rotulo">Fotos <small>A primeira é a capa</small></span>
+            <div class="fotos" id="fotos"></div>
+            <label class="soltar" for="inputFotos">
+              <input id="inputFotos" type="file" accept="image/*" multiple>
+              <span><b>📷 Adicionar fotos</b><small>Tire uma foto ou escolha da galeria. O painel deixa a foto leve sozinho.</small></span>
+            </label>
+          </div>
+          <div class="campo">
+            <label for="pNome">Nome do produto <em>obrigatório</em></label>
+            <input id="pNome" type="text" maxlength="160" required placeholder="Ex.: X-Tudo">
+            <small class="ajuda">Escreva como o cliente fala: "X-Tudo", não "XTD".</small>
+          </div>
+          <div class="campo">
+            <label for="pChamada">Chamada curta <small>opcional</small></label>
+            <input id="pChamada" type="text" maxlength="80" placeholder="Ex.: O mais pedido da casa">
+          </div>
+          <div class="campo">
+            <label for="pCategoria">Categoria <em>obrigatório</em></label>
+            <select id="pCategoria" required></select>
+          </div>
+          <div class="campo-duplo">
+            <div class="campo">
+              <label for="pPreco">Preço (R$)</label>
+              <input id="pPreco" type="text" inputmode="decimal" placeholder="0,00">
+            </div>
+            <div class="campo">
+              <label for="pPromo">Preço promocional <small>opcional</small></label>
+              <input id="pPromo" type="text" inputmode="decimal" placeholder="Ex.: 24,90">
+            </div>
+          </div>
+          <small class="ajuda">Deixe o preço em 0 quando o valor depende da escolha do cliente (tamanhos, sabores). Se puser preço promocional, o site mostra o preço normal riscado.</small>
+        </section>
+
+        <!-- PASSO 2 -->
+        <section class="etapa" data-etapa="1" hidden>
+          <div class="campo">
+            <label for="pDescricao">Descrição</label>
+            <textarea id="pDescricao" rows="4" maxlength="600" placeholder="Ex.: Pão especial, carne, presunto, ovo, bacon, muçarela, alface e tomate."></textarea>
+            <small class="ajuda"><span id="contaDescricao">0</span>/600 · Em breve: botão para a inteligência artificial sugerir um texto.</small>
+          </div>
+          <div class="campo">
+            <label for="pIngredienteNovo">Ingredientes</label>
+            <div class="etiquetas" id="pIngredientes"></div>
+            <input id="pIngredienteNovo" type="text" placeholder="Digite e aperte Enter (ex.: bacon)" enterkeyhint="done">
+          </div>
+          <div class="campo">
+            <label for="pDiferencialNovo">Benefícios e diferenciais</label>
+            <div class="etiquetas" id="pDiferenciais"></div>
+            <input id="pDiferencialNovo" type="text" placeholder="Ex.: Artesanal, Serve 2 pessoas" enterkeyhint="done">
+          </div>
+          <div class="campo">
+            <label for="pInfo">Informações adicionais</label>
+            <textarea id="pInfo" rows="3" maxlength="400" placeholder="Ex.: Contém glúten e lactose. Tempo de preparo: 25 min."></textarea>
+          </div>
+          <div class="campo">
+            <span class="rotulo">Vídeo <small>opcional · curto, até 20 MB</small></span>
+            <div class="video" id="videoAtual"></div>
+            <label class="soltar soltar--peq" for="inputVideo">
+              <input id="inputVideo" type="file" accept="video/mp4,video/webm,video/quicktime">
+              <span><b>🎬 Enviar vídeo</b><small>Vídeos curtos (até ~15 s) carregam rápido.</small></span>
+            </label>
+            <label for="pLinkVideo" class="rotulo-sec">Ou cole um link do Instagram/YouTube</label>
+            <input id="pLinkVideo" type="url" placeholder="https://...">
+          </div>
+        </section>
+
+        <!-- PASSO 3 -->
+        <section class="etapa" data-etapa="2" hidden>
+          <p class="dica">Escolhas que o cliente faz ao pedir este produto: tamanhos, sabores, bordas e adicionais.</p>
+          <div id="opcoesResumo" class="opcoes-resumo"></div>
+          <p class="aviso">A edição de tamanhos, sabores e adicionais chega na próxima etapa do painel. As escolhas que já existem continuam funcionando no site.</p>
+        </section>
+
+        <!-- PASSO 4 -->
+        <section class="etapa" data-etapa="3" hidden>
+          <label class="chave">
+            <input id="pDisponivel" type="checkbox" checked>
+            <span class="chave__trilho" aria-hidden="true"></span>
+            <span><b>Disponível hoje</b><small>Desligue quando acabar o estoque. O produto sai do site até você ligar de novo.</small></span>
+          </label>
+          <label class="chave">
+            <input id="pDestaque" type="checkbox">
+            <span class="chave__trilho" aria-hidden="true"></span>
+            <span><b>⭐ Destaque</b><small>Aparece na faixa "Destaques", no topo do cardápio.</small></span>
+          </label>
+          <label class="chave">
+            <input id="pNovidade" type="checkbox">
+            <span class="chave__trilho" aria-hidden="true"></span>
+            <span><b>🆕 Novidade</b><small>Mostra o selo "Novo" no produto.</small></span>
+          </label>
+          <div class="campo campo--recuo" id="campoNovidadeAte" hidden>
+            <label for="pNovidadeAte">Mostrar "Novo" até</label>
+            <input id="pNovidadeAte" type="date">
+          </div>
+        </section>
+      </form>
+
+      <aside class="previa" aria-label="Prévia no site">
+        <span class="rotulo">Como vai aparecer no site</span>
+        <div class="previa__card" id="previa"></div>
+      </aside>
+    </div>
+
+    <footer class="editor__rodape">
+      <p class="msg msg--erro" id="editorErro" hidden></p>
+      <div class="editor__botoes">
+        <button type="button" class="btn btn--fantasma" id="editorVoltar">Voltar</button>
+        <button type="button" class="btn btn--secundario" id="editorAvancar">Próximo</button>
+        <button type="button" class="btn btn--primario" id="editorSalvar">Salvar produto</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ CONFIRMAÇÃO ============ -->
+<div class="confirma" id="confirma" role="alertdialog" aria-modal="true" aria-labelledby="confirmaTitulo" hidden>
+  <div class="confirma__caixa">
+    <h2 id="confirmaTitulo"></h2>
+    <p id="confirmaTexto"></p>
+    <div class="confirma__botoes">
+      <button type="button" class="btn btn--fantasma" id="confirmaNao">Cancelar</button>
+      <button type="button" class="btn btn--perigo" id="confirmaSim">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="carregando" id="carregando" hidden><span></span><p>Carregando…</p></div>
+<div class="aviso-flutuante" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="assets/vendor/supabase-2.118.0.min.js"></script>
+<script src="assets/js/fonte-dados.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
