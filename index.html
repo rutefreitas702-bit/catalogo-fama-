@@ -191,10 +191,18 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="data/menu.js"></script>
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
 <script src="assets/vendor/lenis.min.js"></script>
+<script src="assets/js/fonte-dados.js"></script>
 <script src="assets/js/app.js"></script>
+<script>
+  /* busca o cardápio (Supabase ou cópia de reserva) e depois monta o site */
+  FamaDados.carregar(function (origem) {
+    document.documentElement.dataset.fonte = origem;
+    if (window.FAMA_DATA) window.iniciarFama();
+    else document.getElementById('loaderTxt').textContent = 'Não foi possível carregar o cardápio. Recarregue a página.';
+  });
+</script>
 </body>
 </html>

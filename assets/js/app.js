@@ -1,8 +1,9 @@
 /* Fama Burguer e Pizzaria — catálogo digital
- * Todo o conteúdo comercial vem de data/menu.js (extraído do cardápio oficial).
+ * O conteúdo comercial vem do Supabase (painel administrativo), carregado por fonte-dados.js;
+ * se o Supabase não responder, vem da cópia de reserva data/menu.js.
  * Este arquivo só apresenta os dados: nenhum preço, nome ou descrição é escrito aqui.
  */
-(function () {
+window.iniciarFama = function () {
   'use strict';
 
   var D = window.FAMA_DATA;
@@ -28,7 +29,11 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function norm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
   function trimT(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
-  function imgSrc(k) { return k ? CONFIG.imgDir + k + '.webp' : null; }
+  function imgSrc(k) {
+    if (!k) return null;
+    // caminho completo (Supabase/painel ou assets/...) ou chave antiga da cópia de reserva
+    return (k.indexOf('/') >= 0 || k.indexOf(':') >= 0) ? k : CONFIG.imgDir + k + '.webp';
+  }
   function store(key, val) {
     try {
       if (val === undefined) return localStorage.getItem(key);
@@ -62,6 +67,7 @@
   function fmtSecs(sec) { var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60); return h + 'h' + (m ? String(m).padStart(2, '0') : ''); }
 
   function storeStatus() {
+    if (S.closedToday) return { open: false, label: 'Fechado hoje', short: 'Fechado' };
     var n = nowStore();
     var today = S.week[n.dow] || [];
     for (var i = 0; i < today.length; i++) {
@@ -930,4 +936,4 @@
     });
   }
   window.addEventListener('load', function () { if (window.ScrollTrigger) window.ScrollTrigger.refresh(); });
-})();
+};

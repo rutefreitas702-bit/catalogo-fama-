@@ -26,12 +26,26 @@ const visItem = it => !it.out && active(it.non_active_weekdays);
 const visItems = c => active(c.non_active_weekdays) ? c.itens.filter(visItem) : [];
 
 (async () => {
-  const b = await chromium.launch();
+  // usa o proxy do ambiente (quando houver) para o navegador alcançar o Supabase
+  const b = await chromium.launch(process.env.HTTPS_PROXY ? { proxy: { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' } } : {});
   const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
   await ctx.addInitScript(() => { try { localStorage.setItem('fama-lite', '1'); } catch (e) {} });
   const p = await ctx.newPage();
   await p.goto(url, { waitUntil: 'load' });
+  await p.waitForFunction(() => document.documentElement.dataset.fonte, null, { timeout: 15000 });
   await p.waitForTimeout(800);
+  const FONTE = await p.evaluate(() => document.documentElement.dataset.fonte);
+  console.log('Fonte dos dados no site:', FONTE);
+  // Quando o site lê do Supabase, os códigos são os do banco: traduz o código original (Anota AI) para o do banco via origem_id
+  const MAPA = {};
+  if (FONTE === 'supabase') {
+    const db = await p.evaluate(async (cfg) => {
+      const r = await fetch(cfg.url + '/rest/v1/rpc/cardapio_publico', { method: 'POST', headers: { apikey: cfg.chave, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_slug: cfg.loja }) });
+      return r.json();
+    }, await p.evaluate(() => window.FamaDados.SUPABASE));
+    ['categorias', 'produtos', 'grupos', 'opcoes'].forEach(k => (db[k] || []).forEach(x => { if (x.origem_id) MAPA[x.origem_id] = String(x.id); }));
+  }
+  const ID = x => MAPA[x] || x;
 
   const rows = [], problems = [];
   let checks = 0;
@@ -42,22 +56,22 @@ const visItems = c => active(c.non_active_weekdays) ? c.itens.filter(visItem) : 
   // 1) categorias: as mesmas, na mesma ordem
   const domCats = await p.$$eval('.cat', els => els.map(e => ({ id: e.dataset.cat, t: e.querySelector('.cat__title').textContent.replace(/\s+/g, ' ').trim() })));
   checks++;
-  if (domCats.map(c => c.id).join() !== shownCats.map(c => c._id).join()) problems.push('Categorias diferentes do original. Original: ' + shownCats.map(c => clean(c.title)).join(', ') + ' | Novo: ' + domCats.map(c => c.t).join(', '));
-  shownCats.forEach(c => { checks++; const d = domCats.find(x => x.id === c._id); if (!d || d.t.toLowerCase() !== clean(c.title).toLowerCase()) problems.push('Nome de categoria diferente: ' + c.title); });
+  if (domCats.map(c => c.id).join() !== shownCats.map(c => ID(c._id)).join()) problems.push('Categorias diferentes do original. Original: ' + shownCats.map(c => clean(c.title)).join(', ') + ' | Novo: ' + domCats.map(c => c.t).join(', '));
+  shownCats.forEach(c => { checks++; const d = domCats.find(x => x.id === ID(c._id)); if (!d || d.t.toLowerCase() !== clean(c.title).toLowerCase()) problems.push('Nome de categoria diferente: ' + c.title); });
 
   // 2) nada que o original esconde aparece
   for (const c of cats) for (const it of c.itens) {
     if (visItems(c).includes(it)) continue;
     checks++;
-    if (await p.$(`[data-open="${it._id}"]`)) problems.push(`Aparece no novo, mas o original esconde: ${c.title} > ${it.title}`);
+    if (await p.$(`[data-open="${ID(it._id)}"]`)) problems.push(`Aparece no novo, mas o original esconde: ${c.title} > ${it.title}`);
   }
 
   // 3) produto por produto
   for (const c of shownCats) {
     for (const it of visItems(c)) {
       checks++;
-      if (!(await p.$(`#cat-${c._id} [data-open="${it._id}"]`))) { problems.push(`Produto não encontrado: ${c.title} > ${it.title}`); rows.push({ cat: clean(c.title), item: clean(it.title), orig: money(it.price), novo: 'NÃO ENCONTRADO', ok: false }); continue; }
-      await p.evaluate(id => document.querySelector(`[data-open="${id}"]`).click(), it._id);
+      if (!(await p.$(`#cat-${ID(c._id)} [data-open="${ID(it._id)}"]`))) { problems.push(`Produto não encontrado: ${c.title} > ${it.title}`); rows.push({ cat: clean(c.title), item: clean(it.title), orig: money(it.price), novo: 'NÃO ENCONTRADO', ok: false }); continue; }
+      await p.evaluate(id => document.querySelector(`[data-open="${id}"]`).click(), ID(it._id));
       await p.waitForSelector('#productSheet:not([hidden])');
       const modal = clean(await p.$eval('#productBody', e => e.textContent));
       const title = clean(await p.$eval('#pTitle', e => e.textContent));
@@ -105,12 +119,12 @@ const visItems = c => active(c.non_active_weekdays) ? c.itens.filter(visItem) : 
   const fotosDoOriginal = [], semFoto = [];
   const keyOf = u => u ? crypto.createHash('md5').update(u).digest('hex').slice(0, 12) : null;
   for (const c of shownCats) {
-    const dom = await p.$$eval(`#cat-${c._id} .grid > .card`, els => els.map(e => ({ id: e.dataset.open, img: (e.querySelector('img') || {}).getAttribute ? e.querySelector('img').getAttribute('src') : null })));
+    const dom = await p.$$eval(`#cat-${ID(c._id)} .grid > .card`, els => els.map(e => ({ id: e.dataset.open, img: (e.querySelector('img') || {}).getAttribute ? e.querySelector('img').getAttribute('src') : null })));
     checks++;
-    if (dom.map(d => d.id).join() !== visItems(c).map(i => i._id).join()) problems.push(`Ordem/quantidade de itens diferente do original em ${c.title}`);
+    if (dom.map(d => d.id).join() !== visItems(c).map(i => ID(i._id)).join()) problems.push(`Ordem/quantidade de itens diferente do original em ${c.title}`);
     for (const it of visItems(c)) {
       checks++;
-      const d = dom.find(x => x.id === it._id); if (!d) continue;
+      const d = dom.find(x => x.id === ID(it._id)); if (!d) continue;
       let want = keyOf(it.image);
       const real = it.image && it.image.includes('client-assets');
       if (!real) {

@@ -3,7 +3,7 @@
 O novo catálogo mostra **exatamente o que o cardápio original mostra**: os mesmos produtos, nomes, descrições, preços e opções.
 Como no original, itens esgotados, categorias vazias e categorias fora do horário ficam ocultos.
 
-Conferido em 11/11/2026, 12:10:15 (horário da loja).
+Conferido em 14/11/2026, 16:34:38 (horário da loja).
 
 - Categorias exibidas: **9** (PROMOÇÃO LANCHES, Lanches, Á La Carte, Pizzas, Bebidas, Porções, Sorvetes, Molhos, Chocolates)
 - Categorias ocultas, como no original: PROMOÇÃO PIZZAS (só no horário dela), MASSAS E SUPREMO PROMOÇÃO (tudo esgotado), ACAI, VITAMINAS E SUCO PROMOÇÃO (tudo esgotado), COMBOS FAMA (vazia), Massas (tudo esgotado), Batatas Assadas (tudo esgotado), Refeições (tudo esgotado), Açaí (tudo esgotado), Caldos (tudo esgotado), Combo a Volta do Fama (tudo esgotado)
