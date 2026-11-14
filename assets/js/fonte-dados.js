@@ -115,7 +115,7 @@
   function carregarReserva(pronto) {
     if (root.FAMA_DATA) return pronto('reserva');
     var s = document.createElement('script');
-    s.src = 'data/menu.js';
+    s.src = 'data/menu.js?v=20261114b';
     s.onload = function () { pronto('reserva'); };
     s.onerror = function () { pronto('erro'); };
     document.head.appendChild(s);

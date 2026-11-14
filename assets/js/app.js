@@ -888,7 +888,7 @@ window.iniciarFama = function () {
     if (LITE) return;
     var c = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     if (!c) return;
-    import(new URL('assets/js/hero3d.js', document.baseURI).href).then(function (m) {
+    import(new URL('assets/js/hero3d.js?v=20261114b', document.baseURI).href).then(function (m) {
       window.FamaFX = m.init($('#fx'), { mobile: innerWidth < 820 });
       $('#fx').classList.add('is-on');
       var lastY = window.scrollY, v = 0;

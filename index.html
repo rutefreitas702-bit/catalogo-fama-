@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/css/fama.css">
+<link rel="stylesheet" href="assets/css/fama.css?v=20261114b">
 <link rel="preload" as="image" href="assets/hero/f001.webp">
 </head>
 <body class="is-intro">
@@ -194,15 +194,34 @@
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
 <script src="assets/vendor/lenis.min.js"></script>
-<script src="assets/js/fonte-dados.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/fonte-dados.js?v=20261114b"></script>
+<script src="assets/js/app.js?v=20261114b"></script>
 <script>
   /* busca o cardápio (Supabase ou cópia de reserva) e depois monta o site */
-  FamaDados.carregar(function (origem) {
-    document.documentElement.dataset.fonte = origem;
-    if (window.FAMA_DATA) window.iniciarFama();
-    else document.getElementById('loaderTxt').textContent = 'Não foi possível carregar o cardápio. Recarregue a página.';
-  });
+  (function () {
+    var loader = document.getElementById('loader');
+    // se algo der errado, nunca deixa o cliente preso na tela do logo
+    function falhou() {
+      if (loader.classList.contains('is-done') || document.getElementById('loaderTxt').dataset.erro) return;
+      var t = document.getElementById('loaderTxt'); t.dataset.erro = '1';
+      t.innerHTML = 'Não foi possível abrir o cardápio.<br><button type="button" style="margin-top:14px;padding:10px 22px;border-radius:999px;border:0;background:#f5b82e;color:#1a0f08;font-weight:700;font-size:15px">Recarregar</button>';
+      t.querySelector('button').onclick = function () { location.replace(location.pathname + '?r=' + Date.now()); };
+    }
+    // demorou demais (internet muito lenta ou erro): mostra o cardápio se já estiver montado, senão oferece recarregar
+    setTimeout(function () {
+      if (loader.classList.contains('is-done')) return;
+      if (document.querySelector('#catalog .card, .card')) loader.classList.add('is-done'); else falhou();
+    }, 20000);
+    if (!window.FamaDados) return falhou();
+    FamaDados.carregar(function (origem) {
+      document.documentElement.dataset.fonte = origem;
+      if (!window.FAMA_DATA || typeof window.iniciarFama !== 'function') return falhou();
+      try { window.iniciarFama(); } catch (e) {
+        if (window.console) console.error(e);
+        if (document.querySelector('.card')) loader.classList.add('is-done'); else falhou();
+      }
+    });
+  })();
 </script>
 </body>
 </html>
