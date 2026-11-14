@@ -106,6 +106,10 @@
         pay: { money: !!pay.money, card: !!pay.card, pix: !!pay.pix, online: !!pay.online, cards: L.bandeiras || [] },
         regions: (r.bairros || []).slice().sort(function (a, b) { return a.ordem - b.ordem; }).map(function (b) { return { n: b.nome, p: num(b.taxa) }; }),
         segments: L.segmentos || [], closedToday: !!L.fechada_hoje, showSoldOut: !!L.mostrar_esgotados,
+        coupons: (r.cupons || []).map(function (k) {
+          return { code: k.codigo, desc: k.descricao || '', type: k.tipo, value: num(k.valor), where: k.aplica_em,
+            min: num(k.pedido_minimo), first: !!k.primeiro_pedido, until: k.valido_ate || null };
+        }),
         menuUpdatedAt: atualizado || null
       },
       categories: categories, groups: groups, highlights: highlights, issues: [], source: 'supabase'
@@ -115,7 +119,7 @@
   function carregarReserva(pronto) {
     if (root.FAMA_DATA) return pronto('reserva');
     var s = document.createElement('script');
-    s.src = 'data/menu.js?v=20261114b';
+    s.src = 'data/menu.js?v=20261114c';
     s.onload = function () { pronto('reserva'); };
     s.onerror = function () { pronto('erro'); };
     document.head.appendChild(s);

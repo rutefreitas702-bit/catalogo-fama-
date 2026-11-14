@@ -459,8 +459,91 @@ window.iniciarFama = function () {
     toast(current.qty + '× ' + trimT(it.t) + ' no pedido');
     if (window.FamaFX && window.FamaFX.burst) window.FamaFX.burst();
   }
-  var checkout = { mode: S.accept.delivery ? 'entrega' : (S.accept.take ? 'retirada' : 'local'), region: '', name: '', street: '', num: '', comp: '', ref: '', pay: S.pay.money ? 'dinheiro' : 'cartao', change: '', card: '', obs: '' };
+  var checkout = { mode: S.accept.delivery ? 'entrega' : (S.accept.take ? 'retirada' : 'local'), region: '', name: '', street: '', num: '', comp: '', ref: '', pay: S.pay.money ? 'dinheiro' : 'cartao', change: '', card: '', obs: '', coupon: '' };
   try { Object.assign(checkout, JSON.parse(store('fama-checkout') || '{}')); } catch (e) { /* ignora */ }
+
+  /* ================= cupons de desconto ================= */
+  function cupomValido(c) { return !c.until || new Date(c.until).getTime() > Date.now(); }
+  function cuponsAtivos() { return (S.coupons || []).filter(cupomValido); }
+  function cupomValor(c) {
+    if (c.type === 'percentual') return String(c.value).replace('.', ',') + '%';
+    return c.value % 1 ? money(c.value) : 'R$ ' + c.value; // R$ 10 em vez de R$ 10,00
+  }
+  function cupomOnde(c) { return c.where === 'entrega' ? 'na entrega' : 'no pedido'; }
+  function cupomTitulo(c) { return cupomValor(c) + ' OFF ' + cupomOnde(c); }
+  function cupomRegra(c) {
+    var r = [];
+    if (c.first) r.push('primeiro pedido');
+    if (c.min > 0) r.push('pedidos a partir de ' + (c.min % 1 ? money(c.min) : 'R$ ' + c.min));
+    return r.join(' · ');
+  }
+  function cupomValidade(c) {
+    if (!c.until) return '';
+    var d = new Date(c.until);
+    return 'Válido até ' + d.toLocaleDateString('pt-BR', { timeZone: S.tz, day: '2-digit', month: '2-digit' });
+  }
+  // calcula o desconto do cupom escolhido; ok=false quando ainda não dá para usar (com o motivo)
+  function cupomCalc() {
+    var code = (checkout.coupon || '').toUpperCase();
+    if (!code) return null;
+    var c = cuponsAtivos().find(function (x) { return x.code === code; });
+    if (!c) { checkout.coupon = ''; store('fama-checkout', JSON.stringify(checkout)); return null; }
+    var sub = cartSubtotal(), off = 0, msg = '';
+    if (sub < c.min) msg = 'Faltam ' + money(c.min - sub) + ' para usar o cupom ' + c.code + ' (pedidos a partir de ' + money(c.min) + ').';
+    else if (c.where === 'entrega') {
+      if (checkout.mode !== 'entrega') msg = 'O cupom ' + c.code + ' é de desconto na taxa de entrega: escolha "Entrega" para usar.';
+      else if (!checkout.region) msg = 'Escolha o bairro para o cupom ' + c.code + ' descontar da taxa de entrega.';
+      else {
+        var fee = regionFee();
+        off = c.type === 'percentual' ? fee * c.value / 100 : Math.min(c.value, fee);
+        if (!fee) msg = 'A entrega no seu bairro já é grátis.';
+      }
+    } else off = c.type === 'percentual' ? sub * c.value / 100 : Math.min(c.value, sub);
+    off = Math.round(off * 100) / 100;
+    return { c: c, off: off, ok: !msg && off > 0, msg: msg };
+  }
+  function aplicarCupom(code, origem) {
+    code = String(code || '').trim().toUpperCase();
+    var c = cuponsAtivos().find(function (x) { return x.code === code; });
+    if (!c) return false;
+    checkout.coupon = c.code; store('fama-checkout', JSON.stringify(checkout));
+    renderCupons();
+    if (origem !== 'carrinho') toast('Cupom ' + c.code + ' guardado! O desconto aparece no seu pedido.');
+    return true;
+  }
+  function renderCupons() {
+    var lista = cuponsAtivos(), sec = $('#cuponsSec');
+    if (!sec) return;
+    sec.hidden = !lista.length;
+    $('#cupons').innerHTML = lista.map(function (c) {
+      var usando = (checkout.coupon || '').toUpperCase() === c.code;
+      var regra = cupomRegra(c), val = cupomValidade(c);
+      return '<article class="cupom' + (usando ? ' is-on' : '') + '">' +
+        '<div class="cupom__valor">' + esc(cupomValor(c)) + ' OFF <small>' + esc(cupomOnde(c)) + '</small></div>' +
+        (regra ? '<p class="cupom__regra">' + esc(regra.charAt(0).toUpperCase() + regra.slice(1)) + '</p>' : '') +
+        '<div class="cupom__rodape"><span class="cupom__codigo">' + esc(c.code) + '</span>' + (val ? '<span class="cupom__val">' + esc(val) + '</span>' : '') + '</div>' +
+        '<button type="button" class="btn ' + (usando ? 'btn--ghost' : 'btn--mustard') + ' cupom__btn" data-usar-cupom="' + esc(c.code) + '"' + (usando ? ' aria-pressed="true"' : '') + '>' +
+        (usando ? '✓ Cupom no pedido' : 'Usar cupom') + '</button></article>';
+    }).join('');
+  }
+  function cupomCarrinhoHTML(k) {
+    var lista = cuponsAtivos();
+    if (!lista.length) return '';
+    var h = '<h3>Cupom de desconto</h3>';
+    if (k) {
+      h += '<div class="cupom-sel' + (k.ok ? '' : ' is-pend') + '"><div><strong>' + esc(k.c.code) + '</strong> · ' + esc(cupomTitulo(k.c)) +
+        (k.c.first ? '<small>Só para o primeiro pedido na loja: a Fama confere pelo WhatsApp.</small>' : '') + '</div>' +
+        '<button type="button" class="link-btn" id="cupRemover">Remover</button></div>' +
+        (k.msg ? '<p class="note note--warn">' + esc(k.msg) + '</p>' : '');
+    } else {
+      h += '<div class="cupom-chips">' + lista.map(function (c) {
+        return '<button type="button" class="chip" data-cupom="' + esc(c.code) + '">' + esc(c.code) + ' · ' + esc(cupomTitulo(c)) + '</button>';
+      }).join('') + '</div>' +
+        '<div class="cupom-campo"><input id="coCupom" type="text" autocapitalize="characters" autocomplete="off" placeholder="Ou digite o código" maxlength="20" aria-label="Código do cupom">' +
+        '<button type="button" class="btn btn--ghost" id="cupAplicar">Aplicar</button></div><p class="pd__err" id="cupErr" hidden></p>';
+    }
+    return h;
+  }
   function regionFee() { var r = S.regions.find(function (x) { return x.n === checkout.region; }); return checkout.mode === 'entrega' && r ? r.p : 0; }
   function renderCart() {
     var body = $('#cartBody');
@@ -469,7 +552,7 @@ window.iniciarFama = function () {
       return;
     }
     var st = storeStatus();
-    var sub = cartSubtotal(), fee = regionFee(), total = sub + fee;
+    var sub = cartSubtotal(), fee = regionFee(), kup = cupomCalc(), off = kup && kup.ok ? kup.off : 0, total = Math.max(0, sub + fee - off);
     var lines = cart.map(function (l) {
       var det = (l.sum || []).map(function (s) { return '<li>' + esc(s.g) + ': ' + s.opts.map(function (o) { return (o.q > 1 ? o.q + '× ' : '') + esc(o.t); }).join(', ') + '</li>'; }).join('');
       return '<div class="cline">' + (l.img ? '<img src="' + imgSrc(l.img) + '" alt="" width="58" height="58">' : '<div class="cline__ph"></div>') +
@@ -490,6 +573,7 @@ window.iniciarFama = function () {
     body.innerHTML = lines +
       '<div class="totals"><div><span>Subtotal</span><span>' + money(sub) + '</span></div>' +
       (checkout.mode === 'entrega' ? '<div><span>Taxa de entrega' + (checkout.region ? ' (' + esc(checkout.region) + ')' : '') + '</span><span>' + (checkout.region ? money(fee) : 'selecione o bairro') + '</span></div>' : '') +
+      (off ? '<div class="totals__desc"><span>Cupom ' + esc(kup.c.code) + '</span><span>− ' + money(off) + '</span></div>' : '') +
       '<div class="grand"><span>Total</span><span>' + money(total) + '</span></div></div>' +
       '<form class="form" id="coForm" novalidate>' +
       '<h3>Como você quer receber?</h3><div class="seg">' + modes.map(function (m) { return '<label><input type="radio" name="mode" value="' + m[0] + '"' + (checkout.mode === m[0] ? ' checked' : '') + '><span>' + m[1] + '</span></label>'; }).join('') + '</div>' +
@@ -502,6 +586,7 @@ window.iniciarFama = function () {
       '<h3>Pagamento</h3><div class="seg">' + pays.map(function (p) { return '<label><input type="radio" name="pay" value="' + p[0] + '"' + (checkout.pay === p[0] ? ' checked' : '') + '><span>' + p[1] + '</span></label>'; }).join('') + '</div>' +
       (checkout.pay === 'dinheiro' ? '<div class="field"><label for="coChange">Troco para quanto? (opcional)</label><input id="coChange" type="text" inputmode="decimal" placeholder="Ex.: 100" value="' + esc(checkout.change) + '"></div>' : '') +
       (checkout.pay === 'cartao' && S.pay.cards.length ? '<div class="field"><label for="coCard">Bandeira</label><select id="coCard"><option value="">Selecione</option>' + S.pay.cards.map(function (c) { return '<option' + (c === checkout.card ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></div>' : '') +
+      cupomCarrinhoHTML(kup) +
       '<div class="field"><label for="coObs">Observações do pedido</label><textarea id="coObs" maxlength="200">' + esc(checkout.obs) + '</textarea></div>' +
       (issues.length ? '<p class="note note--warn">' + issues.join(' ') + '</p>' : '') +
       '<p class="pd__err" id="coErr" hidden></p>' +
@@ -521,7 +606,7 @@ window.iniciarFama = function () {
     store('fama-checkout', JSON.stringify(checkout));
   }
   function orderText() {
-    var sub = cartSubtotal(), fee = regionFee();
+    var sub = cartSubtotal(), fee = regionFee(), kup = cupomCalc(), off = kup && kup.ok ? kup.off : 0;
     var L = ['*Pedido — Fama Burguer e Pizzaria*', ''];
     cart.forEach(function (l) {
       L.push('*' + l.qty + '× ' + l.title + '* — ' + money(l.unit * l.qty));
@@ -530,7 +615,8 @@ window.iniciarFama = function () {
     });
     L.push('', 'Subtotal: ' + money(sub));
     if (checkout.mode === 'entrega') L.push('Taxa de entrega (' + (checkout.region || '—') + '): ' + money(fee));
-    L.push('*Total: ' + money(sub + fee) + '*', '');
+    if (off) L.push('Cupom ' + kup.c.code + ' (' + cupomTitulo(kup.c) + (kup.c.first ? ', primeiro pedido' : '') + '): − ' + money(off));
+    L.push('*Total: ' + money(Math.max(0, sub + fee - off)) + '*', '');
     L.push('Tipo: ' + ({ entrega: 'Entrega', retirada: 'Retirada', local: 'Consumo no local' })[checkout.mode]);
     L.push('Nome: ' + checkout.name);
     if (checkout.mode === 'entrega') L.push('Endereço: ' + [checkout.street, checkout.num].filter(Boolean).join(', ') + (checkout.comp ? ' – ' + checkout.comp : '') + ' – ' + checkout.region + (checkout.ref ? ' (Ref.: ' + checkout.ref + ')' : ''));
@@ -552,7 +638,16 @@ window.iniciarFama = function () {
   }
   function updateWhatsHref() { var a = $('#sendWhats'); if (a) a.href = waLink(orderText()); }
   function onCartClick(e) {
-    var t = e.target.closest('[data-cinc],[data-cdec],[data-crm],#clearCart,#sendWhats'); if (!t) return;
+    var t = e.target.closest('[data-cinc],[data-cdec],[data-crm],#clearCart,#sendWhats,[data-cupom],#cupAplicar,#cupRemover'); if (!t) return;
+    if (t.dataset.cupom) { readCheckout(); aplicarCupom(t.dataset.cupom, 'carrinho'); renderCart(); return; }
+    if (t.id === 'cupRemover') { readCheckout(); checkout.coupon = ''; store('fama-checkout', JSON.stringify(checkout)); renderCupons(); renderCart(); return; }
+    if (t.id === 'cupAplicar') {
+      var cod = ($('#coCupom') || {}).value || '';
+      readCheckout();
+      if (aplicarCupom(cod, 'carrinho')) renderCart();
+      else { var ce2 = $('#cupErr'); ce2.hidden = false; ce2.textContent = cod.trim() ? 'Cupom "' + cod.trim().toUpperCase() + '" não encontrado ou fora da validade.' : 'Digite o código do cupom.'; }
+      return;
+    }
     if (t.id === 'sendWhats') {
       readCheckout();
       var errs = checkoutErrors();
@@ -888,7 +983,7 @@ window.iniciarFama = function () {
     if (LITE) return;
     var c = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     if (!c) return;
-    import(new URL('assets/js/hero3d.js?v=20261114b', document.baseURI).href).then(function (m) {
+    import(new URL('assets/js/hero3d.js?v=20261114c', document.baseURI).href).then(function (m) {
       window.FamaFX = m.init($('#fx'), { mobile: innerWidth < 820 });
       $('#fx').classList.add('is-on');
       var lastY = window.scrollY, v = 0;
@@ -923,7 +1018,8 @@ window.iniciarFama = function () {
       if (e.target.name === 'mode' || e.target.name === 'pay' || e.target.id === 'coRegion') { readCheckout(); renderCart(); }
       else { readCheckout(); updateWhatsHref(); }
     });
-    $('#cartBody').addEventListener('input', function () { readCheckout(); updateWhatsHref(); });
+    $('#cartBody').addEventListener('input', function (e) { if (e.target.id === 'coCupom') return; readCheckout(); updateWhatsHref(); });
+    $('#cartBody').addEventListener('keydown', function (e) { if (e.target.id === 'coCupom' && e.key === 'Enter') { e.preventDefault(); $('#cupAplicar').click(); } });
     $('#openSearch').addEventListener('click', function () { openLayer('#searchLayer'); runSearch($('#searchInput').value); });
     $('#searchInput').addEventListener('input', function (e) { runSearch(e.target.value); });
     document.addEventListener('keydown', function (e) {
@@ -947,10 +1043,16 @@ window.iniciarFama = function () {
   /* ================= início ================= */
   renderFacts();
   renderFooter();
+  renderCupons();
   renderHighlights();
   renderCatalog();
   buildSearch();
   bind();
+  $('#cupons').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-usar-cupom]'); if (!b) return;
+    if ((checkout.coupon || '') === b.dataset.usarCupom) { $('#openCart').click(); return; }
+    aplicarCupom(b.dataset.usarCupom);
+  });
   updateCartBtn();
   setupSauce();
   setupFloaters();

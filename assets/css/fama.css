@@ -693,3 +693,33 @@ body:not(.is-intro) .floaters.is-on { opacity: 1; }
 .pd__miniatura { padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; background: var(--ink-3); aspect-ratio: 1; }
 .pd__miniatura img { width: 100%; height: 100%; object-fit: cover; }
 .pd__video { width: 100%; max-height: 360px; border-radius: 14px; background: #000; }
+
+/* ================= Versão 5: cupons de desconto ================= */
+.cupons { padding-block: 18px 6px; position: relative; z-index: 2; }
+.cupons__row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(196px, 236px); gap: 10px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.cupons__row::-webkit-scrollbar { display: none; }
+.cupom {
+  position: relative; scroll-snap-align: start; display: grid; gap: 6px; align-content: start;
+  padding: 12px 14px 12px 18px; border-radius: var(--r-md);
+  background: linear-gradient(135deg, #2a1608 0%, var(--ink-3) 70%); border: 1px dashed rgba(251, 206, 28, .45);
+}
+.cupom::before, .cupom::after { content: ""; position: absolute; left: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); border: 1px dashed rgba(251, 206, 28, .45); clip-path: inset(0 0 0 50%); }
+.cupom::before { top: 18px; }
+.cupom::after { bottom: 18px; }
+.cupom.is-on { border-style: solid; border-color: var(--mustard); box-shadow: 0 0 0 1px var(--mustard) inset; }
+.cupom__valor { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 24px; line-height: 1; color: var(--mustard); }
+.cupom__valor small { font-size: 14px; color: var(--cream); letter-spacing: .02em; }
+.cupom__regra { margin: 0; font-size: 12px; line-height: 1.35; color: var(--cream); font-weight: 600; }
+.cupom__rodape { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.cupom__codigo { padding: 2px 7px; border-radius: 6px; background: rgba(251, 206, 28, .14); color: var(--mustard); font-weight: 800; letter-spacing: .06em; font-size: 12px; }
+.cupom__btn { justify-self: start; height: 30px; padding: 0 14px; font-size: 12px; margin-top: 2px; }
+.totals .totals__desc { color: var(--ok); font-weight: 700; }
+.cupom-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cupom-chips .chip { height: auto; min-height: 32px; padding: 6px 12px; text-align: left; }
+.cupom-campo { display: flex; gap: 8px; margin-top: 4px; }
+.cupom-campo input { flex: 1; min-width: 0; text-transform: uppercase; }
+.cupom-campo .btn { flex: none; height: auto; padding: 0 16px; }
+.cupom-sel { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm); background: rgba(87, 201, 141, .1); border: 1px solid rgba(87, 201, 141, .45); font-size: 14px; }
+.cupom-sel.is-pend { background: rgba(242, 184, 75, .08); border-color: rgba(242, 184, 75, .4); }
+.cupom-sel strong { color: var(--mustard); letter-spacing: .04em; }
+.cupom-sel small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }

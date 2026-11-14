@@ -11,7 +11,7 @@
   });
   var urlMidia = window.FamaDados.urlMidia;
 
-  var st = { loja: null, papel: null, categorias: [], produtos: [], aba: 'cardapio', busca: '', cat: '' };
+  var st = { loja: null, papel: null, categorias: [], produtos: [], cupons: [], aba: 'cardapio', busca: '', cat: '' };
   var ed = null; // produto em edição
 
   /* ================= utilidades ================= */
@@ -151,6 +151,7 @@
       x.etapas.sort(function (a, b) { return a.ordem - b.ordem; });
     });
     montarFiltros(); desenharLista();
+    await carregarCupons();
   }
   function categoria(id) { return st.categorias.find(function (c) { return c.id === id; }); }
   function capa(p) { var f = p.produto_midias.find(function (m) { return m.tipo === 'foto'; }); return f ? urlMidia(f.caminho) : null; }
@@ -619,6 +620,186 @@
   }
   $('#editorSalvar').addEventListener('click', salvar);
   $('#editorSalvarTopo').addEventListener('click', salvar);
+
+  /* ================= cupons de desconto ================= */
+  var cupomEd = null; // cupom em edição (null = novo)
+  var FUSO = 'America/Sao_Paulo';
+  function cupomVencido(c) { return c.valido_ate && new Date(c.valido_ate).getTime() <= Date.now(); }
+  function valorCurto(v) { v = Number(v) || 0; return v % 1 ? dinheiro(v) : 'R$ ' + v; }
+  function cupomTexto(c) {
+    var v = c.tipo === 'percentual' ? String(Number(c.valor)).replace('.', ',') + '%' : valorCurto(c.valor);
+    return v + ' OFF ' + (c.aplica_em === 'entrega' ? 'na entrega' : 'no pedido');
+  }
+  function cupomRegras(c) {
+    var r = [];
+    if (c.primeiro_pedido) r.push('primeiro pedido');
+    if (Number(c.pedido_minimo) > 0) r.push('a partir de ' + valorCurto(c.pedido_minimo));
+    return r.join(' · ');
+  }
+  function dataCurta(iso) { return new Date(iso).toLocaleDateString('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  async function carregarCupons() {
+    var r = await sb.from('cupons').select('*').eq('loja_id', st.loja.id).order('ordem').order('id');
+    if (r.error) { aviso(mensagemErro(r.error)); return; }
+    st.cupons = r.data; desenharCupons();
+  }
+  function desenharCupons() {
+    var lista = st.cupons || [];
+    var noSite = lista.filter(function (c) { return c.ativo && !cupomVencido(c); }).length;
+    $('#contaCupons').textContent = noSite;
+    $('#resumoCupons').textContent = noSite ? noSite + (noSite === 1 ? ' cupom aparecendo no site agora' : ' cupons aparecendo no site agora') : 'Nenhum cupom aparecendo no site agora';
+    if (!lista.length) { $('#listaCupons').innerHTML = '<div class="vazio">Nenhum cupom ainda. Toque em <b>Criar cupom</b>.</div>'; return; }
+    $('#listaCupons').innerHTML = lista.map(function (c) {
+      var venc = cupomVencido(c), selos = [];
+      if (venc) selos.push('<span class="selo selo--esgotado">Vencido</span>');
+      else if (!c.ativo) selos.push('<span class="selo selo--arquivado">Desligado</span>');
+      else selos.push('<span class="selo selo--novo">No site</span>');
+      if (c.primeiro_pedido) selos.push('<span class="selo">1º pedido</span>');
+      var regras = cupomRegras(c);
+      return '<div class="item' + (venc || !c.ativo ? ' item--apagado' : '') + '">' +
+        '<div class="item__foto item__foto--cupom" aria-hidden="true">🏷️</div>' +
+        '<button type="button" class="item__info" data-editar-cupom="' + c.id + '" aria-label="Editar cupom ' + esc(c.codigo) + '">' +
+          '<span class="item__nome">' + esc(c.codigo) + '</span>' +
+          '<span class="item__preco">' + esc(cupomTexto(c)) + '</span>' +
+          '<span class="item__meta">' + esc([regras, c.valido_ate ? (venc ? 'venceu em ' : 'válido até ') + dataCurta(c.valido_ate) : 'sem data para vencer'].filter(Boolean).join(' · ')) + '</span>' +
+          '<span class="item__selos">' + selos.join('') + '</span>' +
+        '</button>' +
+        '<div class="item__acoes">' +
+          '<label class="mini-chave" title="Mostrar no site"><input type="checkbox" data-cupom-ativo="' + c.id + '"' + (c.ativo ? ' checked' : '') + '><span class="chave__trilho"></span><span>Ligado</span></label>' +
+          '<div class="menu"><button type="button" class="btn-icone" data-menu-cupom aria-label="Mais ações para o cupom ' + esc(c.codigo) + '" aria-haspopup="true">⋯</button>' +
+            '<div class="menu__lista" hidden>' +
+              '<button type="button" data-acao-cupom="editar" data-id="' + c.id + '">✏️ Editar</button>' +
+              '<button type="button" class="perigo" data-acao-cupom="excluir" data-id="' + c.id + '">🗑️ Excluir</button>' +
+            '</div></div>' +
+        '</div></div>';
+    }).join('');
+  }
+  $('#secoes').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-secao]'); if (!b) return;
+    var qual = b.dataset.secao;
+    $$('.secao').forEach(function (x) { var on = x === b; x.classList.toggle('is-ativa', on); if (on) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current'); });
+    $('#secProdutos').hidden = qual !== 'produtos';
+    $('#secCupons').hidden = qual !== 'cupons';
+    if (qual === 'cupons') desenharCupons();
+    window.scrollTo(0, 0);
+  });
+  $('#listaCupons').addEventListener('click', function (e) {
+    var ed1 = e.target.closest('[data-editar-cupom]');
+    if (ed1) { abrirCupom(Number(ed1.dataset.editarCupom)); return; }
+    var m = e.target.closest('[data-menu-cupom]');
+    if (m) { var l = m.nextElementSibling, aberto = !l.hidden; fecharMenus(); l.hidden = aberto; return; }
+    var a = e.target.closest('[data-acao-cupom]');
+    if (!a) return;
+    fecharMenus();
+    var id = Number(a.dataset.id);
+    if (a.dataset.acaoCupom === 'editar') abrirCupom(id);
+    if (a.dataset.acaoCupom === 'excluir') excluirCupom(id);
+  });
+  $('#listaCupons').addEventListener('change', async function (e) {
+    var t = e.target; if (!t.dataset.cupomAtivo) return;
+    var id = Number(t.dataset.cupomAtivo), c = st.cupons.find(function (x) { return x.id === id; });
+    var r = await sb.from('cupons').update({ ativo: t.checked }).eq('id', id).select('*').single();
+    if (r.error) { t.checked = !t.checked; aviso(mensagemErro(r.error)); return; }
+    Object.assign(c, r.data);
+    aviso(t.checked ? (cupomVencido(c) ? 'Cupom ' + c.codigo + ' ligado, mas está vencido: mude a data para ele voltar ao site.' : 'Cupom ' + c.codigo + ' ligado: já aparece no site.') : 'Cupom ' + c.codigo + ' desligado: saiu do site.', !cupomVencido(c) && t.checked);
+    setTimeout(desenharCupons, 500);
+  });
+  async function excluirCupom(id) {
+    var c = st.cupons.find(function (x) { return x.id === id; }); if (!c) return;
+    if (!await confirmar('Excluir o cupom ' + c.codigo + '?', 'Ele some do site e do painel. Se quiser só pausar, use o botão "Ligado".', 'Excluir cupom', true)) return;
+    var r = await sb.from('cupons').delete().eq('id', id);
+    if (r.error) { aviso(mensagemErro(r.error)); return; }
+    st.cupons = st.cupons.filter(function (x) { return x.id !== id; });
+    desenharCupons(); aviso('Cupom ' + c.codigo + ' excluído.');
+  }
+  function lerCupomForm() {
+    var tipo = ($('input[name="cTipo"]:checked') || {}).value || 'valor';
+    return {
+      codigo: $('#cCodigo').value.toUpperCase().replace(/\s+/g, ''),
+      tipo: tipo,
+      valor: lerPreco($('#cValor').value),
+      pedido_minimo: lerPreco($('#cMinimo').value),
+      aplica_em: ($('input[name="cOnde"]:checked') || {}).value || 'pedido',
+      data: $('#cValidade').value,
+      primeiro_pedido: $('#cPrimeiro').checked,
+      ativo: $('#cAtivo').checked,
+      descricao: $('#cDescricao').value.trim()
+    };
+  }
+  function previaCupom() {
+    var f = lerCupomForm();
+    $('#cValorRotulo').textContent = f.tipo === 'percentual' ? 'Desconto (%)' : 'Desconto (R$)';
+    $('#cValor').placeholder = f.tipo === 'percentual' ? 'Ex.: 10' : 'Ex.: 10,00';
+    if (!f.valor || isNaN(f.valor)) { $('#cupomPrevia').innerHTML = 'Preencha o desconto para ver como o cliente vai ver o cupom.'; return; }
+    var c = { tipo: f.tipo, valor: f.valor, aplica_em: f.aplica_em, primeiro_pedido: f.primeiro_pedido, pedido_minimo: f.pedido_minimo || 0 };
+    var regras = cupomRegras(c);
+    $('#cupomPrevia').innerHTML = 'No site: <b>' + esc(cupomTexto(c)) + '</b>' + (regras ? ' · ' + esc(regras) : '') + (f.codigo ? ' · código <b>' + esc(f.codigo) + '</b>' : '') +
+      (f.data ? ' · até ' + esc(f.data.split('-').reverse().join('/')) : '');
+  }
+  $('#formCupom').addEventListener('input', previaCupom);
+  $('#formCupom').addEventListener('change', previaCupom);
+  $('#cCodigo').addEventListener('input', function (e) {
+    var p = e.target.selectionStart, v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (v !== e.target.value) { e.target.value = v; try { e.target.setSelectionRange(p, p); } catch (x) { /* ignora */ } }
+  });
+  function abrirCupom(id) {
+    var c = id ? st.cupons.find(function (x) { return x.id === id; }) : null;
+    cupomEd = c;
+    $('#cupomTitulo').textContent = c ? 'Editar cupom' : 'Novo cupom';
+    $('#cCodigo').value = c ? c.codigo : '';
+    $('input[name="cTipo"][value="' + (c ? c.tipo : 'valor') + '"]').checked = true;
+    $('#cValor').value = c ? (c.tipo === 'percentual' ? String(Number(c.valor)).replace('.', ',') : precoCampo(c.valor)) : '';
+    $('#cMinimo').value = c && Number(c.pedido_minimo) > 0 ? precoCampo(c.pedido_minimo) : '';
+    $('input[name="cOnde"][value="' + (c ? c.aplica_em : 'pedido') + '"]').checked = true;
+    $('#cValidade').value = c && c.valido_ate ? new Date(c.valido_ate).toLocaleDateString('sv-SE', { timeZone: FUSO }) : '';
+    $('#cPrimeiro').checked = c ? c.primeiro_pedido : false;
+    $('#cAtivo').checked = c ? c.ativo : true;
+    $('#cDescricao').value = c ? c.descricao || '' : '';
+    $('#cupomErro').hidden = true;
+    $('#cupomModal').hidden = false;
+    previaCupom();
+    setTimeout(function () { $('#cCodigo').focus(); }, 30);
+  }
+  function fecharCupom() { $('#cupomModal').hidden = true; cupomEd = null; }
+  function erroCupom(msg, campo) {
+    var e = $('#cupomErro'); e.textContent = msg; e.hidden = false;
+    if (campo) $(campo).focus();
+  }
+  $('#btnNovoCupom').addEventListener('click', function () { abrirCupom(null); });
+  $('#cupomCancelar').addEventListener('click', fecharCupom);
+  $('#cupomModal').addEventListener('click', function (e) { if (e.target.id === 'cupomModal') fecharCupom(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#cupomModal').hidden) fecharCupom(); });
+  $('#formCupom').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var f = lerCupomForm();
+    if (!/^[A-Z0-9]{3,20}$/.test(f.codigo)) return erroCupom('O código precisa ter de 3 a 20 letras ou números, sem espaço. Ex.: BLACK10', '#cCodigo');
+    if (f.valor == null || isNaN(f.valor) || f.valor <= 0) return erroCupom('Informe o valor do desconto.', '#cValor');
+    if (f.tipo === 'percentual' && f.valor > 100) return erroCupom('A porcentagem não pode passar de 100%.', '#cValor');
+    if (f.pedido_minimo != null && isNaN(f.pedido_minimo)) return erroCupom('O pedido mínimo não está num formato válido. Ex.: 30,00', '#cMinimo');
+    var repetido = st.cupons.find(function (x) { return x.codigo === f.codigo && (!cupomEd || x.id !== cupomEd.id); });
+    if (repetido) return erroCupom('Já existe um cupom com o código ' + f.codigo + '. Escolha outro código.', '#cCodigo');
+    if (f.data && f.data < new Date().toLocaleDateString('sv-SE', { timeZone: FUSO }) && f.ativo) {
+      if (!await confirmar('Essa data já passou', 'Com a validade em ' + f.data.split('-').reverse().join('/') + ', o cupom não vai aparecer no site. Salvar assim mesmo?', 'Salvar assim mesmo')) return;
+    }
+    var dados = {
+      codigo: f.codigo, tipo: f.tipo, valor: f.valor, aplica_em: f.aplica_em, pedido_minimo: f.pedido_minimo || 0,
+      primeiro_pedido: f.primeiro_pedido, ativo: f.ativo, descricao: f.descricao,
+      valido_ate: f.data ? f.data + 'T23:59:59-03:00' : null
+    };
+    var b = $('#cupomSalvar'); b.disabled = true;
+    var r;
+    if (cupomEd) r = await sb.from('cupons').update(dados).eq('id', cupomEd.id).select('*').single();
+    else {
+      dados.loja_id = st.loja.id;
+      dados.ordem = (st.cupons || []).reduce(function (m, x) { return Math.max(m, x.ordem || 0); }, 0) + 1;
+      r = await sb.from('cupons').insert(dados).select('*').single();
+    }
+    b.disabled = false;
+    if (r.error) return erroCupom(/duplicate key|cupons_codigo_unico/i.test(r.error.message) ? 'Já existe um cupom com o código ' + f.codigo + '.' : mensagemErro(r.error));
+    if (cupomEd) Object.assign(cupomEd, r.data); else st.cupons.push(r.data);
+    var noSite = r.data.ativo && !cupomVencido(r.data);
+    fecharCupom(); desenharCupons();
+    aviso('Cupom ' + r.data.codigo + ' salvo!' + (noSite ? ' Já aparece no site.' : ' Ele está desligado ou vencido, então não aparece no site.'), noSite);
+  });
 
   /* ================= início ================= */
   sb.auth.onAuthStateChange(function (evento) {

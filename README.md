@@ -45,18 +45,33 @@ assets/js/hero3d.js        camada 3D (three.js)
 assets/vendor/             three.js, GSAP + ScrollTrigger, Lenis (cópias locais)
 assets/hero/               quadros da abertura + vídeo para o modo leve
 assets/img/p/              fotos dos produtos aprimoradas (Real-ESRGAN 4x)
-data/menu.js               cardápio convertido do original
-fonte-original/            resposta original da API do cardápio (fonte de verdade)
-ferramentas/               conferência automática
+admin.html                 painel administrativo (/admin): produtos e cupons
+supabase/migrations/       banco de dados (tabelas, segurança, cupons)
+data/menu.js               cópia de reserva do cardápio (usada só se o banco não responder)
+fonte-original/            capturas do antigo cardápio da Anota AI (histórico)
+ferramentas/               conferência automática e gerador da cópia de reserva
 CONFERENCIA.md             relatório produto a produto
 ```
 
 ## Atualizar o cardápio
 
-1. Salve a nova resposta do cardápio em `fonte-original/r001.json` (mesmo formato).
-2. Gere `data/menu.js` com o script de conversão (`ferramentas/normalize.py`).
-3. Rode a conferência: `node ferramentas/conferencia.js http://localhost:8765/index.html`
-   e confira o `CONFERENCIA.md` (precisa dar 0 divergências).
+Produtos, preços, esgotados, destaques e cupons são alterados pelo painel em `/admin`. Tudo fica no Supabase
+e aparece no site na hora.
+
+De vez em quando, atualize a cópia de reserva:
+
+```bash
+curl -sS -X POST https://hhfgqcteeudpllituwyf.supabase.co/rest/v1/rpc/cardapio_publico \
+  -H "apikey: <chave publicável>" -H "Content-Type: application/json" -d '{"p_slug":"fama"}' > cardapio.json
+node ferramentas/gerar_reserva.js cardapio.json
+```
+
+## Cupons
+
+Criados no painel (área **Cupons**): valor fixo ou porcentagem, no pedido ou na taxa de entrega, pedido mínimo,
+validade e "só primeiro pedido". O site mostra os cupons ligados e dentro da validade, aplica um por pedido no
+carrinho e escreve o desconto na mensagem do WhatsApp. "Primeiro pedido" é conferido pela loja na conversa,
+porque o site não guarda pedidos.
 
 ## Regra de preço da pizza com 2 sabores
 

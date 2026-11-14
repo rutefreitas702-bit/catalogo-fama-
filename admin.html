@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/css/admin.css?v=20261114b">
+<link rel="stylesheet" href="assets/css/admin.css?v=20261114c">
 </head>
 <body>
 
@@ -79,6 +79,12 @@
   </header>
 
   <main class="conteudo">
+    <nav class="secoes" id="secoes" aria-label="Áreas do painel">
+      <button type="button" class="secao is-ativa" data-secao="produtos" aria-current="page">🍔 Produtos</button>
+      <button type="button" class="secao" data-secao="cupons">🏷️ Cupons <b id="contaCupons">0</b></button>
+    </nav>
+
+    <section class="bloco-secao" id="secProdutos">
     <div class="cabecalho">
       <div>
         <h1>Produtos</h1>
@@ -104,6 +110,20 @@
 
     <p class="explica" id="explicaAba"></p>
     <div class="lista" id="lista" aria-live="polite"></div>
+    </section>
+
+    <!-- ============ CUPONS ============ -->
+    <section class="bloco-secao" id="secCupons" hidden>
+      <div class="cabecalho">
+        <div>
+          <h1>Cupons</h1>
+          <p class="dica" id="resumoCupons"></p>
+        </div>
+        <button class="btn btn--primario btn--grande" id="btnNovoCupom" type="button"><span aria-hidden="true">＋</span> Criar cupom</button>
+      </div>
+      <p class="explica">Os cupons ligados aparecem no site para o cliente tocar em <b>Usar cupom</b>. O desconto já sai calculado no carrinho e escrito na mensagem do pedido no WhatsApp. Vale um cupom por pedido.</p>
+      <div class="lista" id="listaCupons" aria-live="polite"></div>
+    </section>
   </main>
 </div>
 
@@ -241,6 +261,67 @@
   </div>
 </div>
 
+<!-- ============ EDITOR DE CUPOM ============ -->
+<div class="confirma" id="cupomModal" role="dialog" aria-modal="true" aria-labelledby="cupomTitulo" hidden>
+  <form class="confirma__caixa cupom-form" id="formCupom" novalidate>
+    <h2 id="cupomTitulo">Novo cupom</h2>
+    <div class="campo">
+      <label for="cCodigo">Código do cupom <em>obrigatório</em></label>
+      <input id="cCodigo" type="text" maxlength="20" autocapitalize="characters" autocomplete="off" placeholder="Ex.: BLACK10">
+      <small class="ajuda">É o que o cliente digita. Só letras e números, sem espaço (3 a 20).</small>
+    </div>
+    <div class="campo">
+      <span class="rotulo">Tipo de desconto</span>
+      <div class="seg" role="radiogroup" aria-label="Tipo de desconto">
+        <label><input type="radio" name="cTipo" value="valor" checked><span>R$ (valor fixo)</span></label>
+        <label><input type="radio" name="cTipo" value="percentual"><span>% (porcentagem)</span></label>
+      </div>
+    </div>
+    <div class="campo-duplo">
+      <div class="campo">
+        <label for="cValor" id="cValorRotulo">Desconto (R$)</label>
+        <input id="cValor" type="text" inputmode="decimal" placeholder="Ex.: 10,00">
+      </div>
+      <div class="campo">
+        <label for="cMinimo">Pedido mínimo (R$) <small>opcional</small></label>
+        <input id="cMinimo" type="text" inputmode="decimal" placeholder="0,00">
+      </div>
+    </div>
+    <div class="campo">
+      <span class="rotulo">Onde o desconto vale</span>
+      <div class="seg" role="radiogroup" aria-label="Onde o desconto vale">
+        <label><input type="radio" name="cOnde" value="pedido" checked><span>No pedido</span></label>
+        <label><input type="radio" name="cOnde" value="entrega"><span>Na taxa de entrega</span></label>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="cValidade">Válido até <small>opcional</small></label>
+      <input id="cValidade" type="date">
+      <small class="ajuda">Vale até as 23h59 desse dia e depois some do site sozinho. Deixe vazio para não vencer.</small>
+    </div>
+    <label class="chave">
+      <input type="checkbox" id="cPrimeiro">
+      <span class="chave__trilho"></span>
+      <span><b>Só para o primeiro pedido</b><small>O site avisa o cliente; a loja confere pelo WhatsApp se é mesmo o primeiro pedido.</small></span>
+    </label>
+    <label class="chave">
+      <input type="checkbox" id="cAtivo" checked>
+      <span class="chave__trilho"></span>
+      <span><b>Cupom ligado</b><small>Desligado, ele sai do site, mas fica guardado aqui para usar de novo.</small></span>
+    </label>
+    <div class="campo">
+      <label for="cDescricao">Anotação <small>opcional, só aparece aqui</small></label>
+      <input id="cDescricao" type="text" maxlength="120" placeholder="Ex.: Campanha da Black Friday">
+    </div>
+    <p class="cupom-previa" id="cupomPrevia"></p>
+    <p class="msg msg--erro" id="cupomErro" hidden></p>
+    <div class="confirma__botoes">
+      <button type="button" class="btn btn--fantasma" id="cupomCancelar">Cancelar</button>
+      <button type="submit" class="btn btn--primario" id="cupomSalvar">Salvar cupom</button>
+    </div>
+  </form>
+</div>
+
 <!-- ============ CONFIRMAÇÃO ============ -->
 <div class="confirma" id="confirma" role="alertdialog" aria-modal="true" aria-labelledby="confirmaTitulo" hidden>
   <div class="confirma__caixa">
@@ -257,7 +338,7 @@
 <div class="aviso-flutuante" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="assets/vendor/supabase-2.118.0.min.js"></script>
-<script src="assets/js/fonte-dados.js?v=20261114b"></script>
-<script src="assets/js/admin.js?v=20261114b"></script>
+<script src="assets/js/fonte-dados.js?v=20261114c"></script>
+<script src="assets/js/admin.js?v=20261114c"></script>
 </body>
 </html>

@@ -1,46 +1,35 @@
 {
- "url": "http://127.0.0.1:8766/index.html",
- "date": "2026-11-14T19:59:10.089Z",
- "horaLoja": "sat 16:59",
- "categoriasExibidas": 9,
+ "url": "https://catalogo-fama.vercel.app/?v=1794697983",
+ "date": "2026-11-14T23:13:10.029Z",
+ "horaLoja": "sat 20:13",
+ "categoriasExibidas": 12,
  "categoriasOcultasNoOriginal": [
+  "PROMOÇÃO LANCHES",
   "PROMOÇÃO PIZZAS",
   "MASSAS E SUPREMO PROMOÇÃO",
   "ACAI, VITAMINAS E SUCO PROMOÇÃO",
   "COMBOS FAMA",
-  "Massas",
-  "Batatas Assadas",
-  "Refeições",
-  "Açaí",
   "Caldos",
   "Combo a Volta do Fama"
  ],
- "produtosExibidos": 43,
- "verificacoes": 999,
+ "produtosExibidos": 74,
+ "verificacoes": 1531,
  "cardsDeOpcao": 0,
  "problemas": [],
  "linhas": [
   {
-   "cat": "PROMOÇÃO LANCHES",
-   "item": "X TUDO + PEITO PROMOÇÃO PITCHULINHA",
-   "orig": "R$ 28,90",
-   "novo": "R$ 28,90",
+   "cat": "Lanches",
+   "item": "Pizza Búrguer Tradicional (Médio)",
+   "orig": "R$ 69,90",
+   "novo": "R$ 69,90",
    "ok": true,
    "opts": 0
   },
   {
-   "cat": "PROMOÇÃO LANCHES",
-   "item": "Cheddar Bacon Búrguer artesanal R$24,90 (PROMOÇÃO)",
-   "orig": "R$ 25,90",
-   "novo": "R$ 25,90",
-   "ok": true,
-   "opts": 0
-  },
-  {
-   "cat": "PROMOÇÃO LANCHES",
-   "item": "FAMA TICKEN BURGUER+ FRITAS ESPECIAL P",
-   "orig": "R$ 24,90",
-   "novo": "R$ 24,90",
+   "cat": "Lanches",
+   "item": "Pizza Búrguer Tradicional (Grande)",
+   "orig": "R$ 99,90",
+   "novo": "R$ 99,90",
    "ok": true,
    "opts": 0
   },
@@ -142,6 +131,38 @@
   },
   {
    "cat": "Á La Carte",
+   "item": "Supremo De Tilápia",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 77,00",
+   "ok": true,
+   "opts": 5
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Supremo De Boi",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 77,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Filé De Tilápia",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 80,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Á La Carte",
+   "item": "Parmegiana De Boi",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 105,90",
+   "ok": true,
+   "opts": 5
+  },
+  {
+   "cat": "Á La Carte",
    "item": "Salada Completa (Alface, Tomate, Cenoura, Palmito E Alcaparras).",
    "orig": "R$ 12,00",
    "novo": "R$ 12,00",
@@ -165,6 +186,38 @@
    "opts": 18
   },
   {
+   "cat": "Massas",
+   "item": "Fettuccine",
+   "orig": "R$ 45,00",
+   "novo": "R$ 45,00",
+   "ok": true,
+   "opts": 4
+  },
+  {
+   "cat": "Massas",
+   "item": "Fettuccine A Quatro Queijos",
+   "orig": "R$ 44,00",
+   "novo": "R$ 44,00",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Massas",
+   "item": "Arroz M.",
+   "orig": "R$ 13,50",
+   "novo": "R$ 13,50",
+   "ok": true,
+   "opts": 2
+  },
+  {
+   "cat": "Massas",
+   "item": "Arroz G.",
+   "orig": "R$ 17,50",
+   "novo": "R$ 17,50",
+   "ok": true,
+   "opts": 2
+  },
+  {
    "cat": "Bebidas",
    "item": "Refrigerantes",
    "orig": "(pelas escolhas)",
@@ -179,6 +232,86 @@
    "novo": "A partir deR$ 10,00",
    "ok": true,
    "opts": 4
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco Sabores 300ml",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 10,00",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco Sabores 450ml",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 13,00",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco Sabores 1,5l",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 37,50",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco Sabores 2l",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 47,00",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco 2 Sabores 300ml",
+   "orig": "R$ 11,50",
+   "novo": "R$ 11,50",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco 2 Sabores 450ml",
+   "orig": "R$ 14,50",
+   "novo": "R$ 14,50",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco 2 Sabores 1,5l",
+   "orig": "R$ 40,50",
+   "novo": "R$ 40,50",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Suco 2 Sabores 2l",
+   "orig": "R$ 54,00",
+   "novo": "R$ 54,00",
+   "ok": true,
+   "opts": 9
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Vitaminas Sabores 300ml",
+   "orig": "(pelas escolhas)",
+   "novo": "R$ 12,50",
+   "ok": true,
+   "opts": 6
+  },
+  {
+   "cat": "Bebidas",
+   "item": "Vitaminas Sabores 450ml",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 11,90",
+   "ok": true,
+   "opts": 6
   },
   {
    "cat": "Bebidas",
@@ -206,14 +339,6 @@
   },
   {
    "cat": "Bebidas",
-   "item": "Suco Lata Del Valle",
-   "orig": "(pelas escolhas)",
-   "novo": "R$ 8,00",
-   "ok": true,
-   "opts": 1
-  },
-  {
-   "cat": "Bebidas",
    "item": "Vinhos",
    "orig": "(pelas escolhas)",
    "novo": "R$ 22,00",
@@ -229,12 +354,52 @@
    "opts": 4
   },
   {
+   "cat": "Bebidas",
+   "item": "CAIPIRINHA",
+   "orig": "R$ 14,90",
+   "novo": "R$ 14,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Batatas Assadas",
+   "item": "Batata Assada Bacon",
+   "orig": "R$ 29,90",
+   "novo": "R$ 29,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Batatas Assadas",
+   "item": "Batata Assada Calabresa",
+   "orig": "R$ 27,90",
+   "novo": "R$ 27,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Batatas Assadas",
+   "item": "Batata Assada Mista",
+   "orig": "R$ 27,90",
+   "novo": "R$ 27,90",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Batatas Assadas",
+   "item": "Batata Assada Especial",
+   "orig": "R$ 32,50",
+   "novo": "R$ 32,50",
+   "ok": true,
+   "opts": 0
+  },
+  {
    "cat": "Porções",
    "item": "Porções",
    "orig": "(pelas escolhas)",
    "novo": "A partir deR$ 10,00",
    "ok": true,
-   "opts": 6
+   "opts": 8
   },
   {
    "cat": "Porções",
@@ -277,6 +442,14 @@
    "opts": 19
   },
   {
+   "cat": "Refeições",
+   "item": "Marmitex",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 28,00",
+   "ok": true,
+   "opts": 9
+  },
+  {
    "cat": "Molhos",
    "item": "Molho Pequeno",
    "orig": "R$ 2,00",
@@ -289,6 +462,78 @@
    "item": "3 Ketchup",
    "orig": "R$ 0,15",
    "novo": "R$ 0,15",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Com Nutella 250ml",
+   "orig": "R$ 21,00",
+   "novo": "R$ 21,00",
+   "ok": true,
+   "opts": 14
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Com Nutella 500ml",
+   "orig": "R$ 24,00",
+   "novo": "R$ 24,00",
+   "ok": true,
+   "opts": 14
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Famoso 250ml",
+   "orig": "R$ 18,50",
+   "novo": "R$ 18,50",
+   "ok": true,
+   "opts": 15
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Famoso 500ml",
+   "orig": "R$ 26,50",
+   "novo": "R$ 26,50",
+   "ok": true,
+   "opts": 15
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Super Fama 250ml",
+   "orig": "R$ 23,00",
+   "novo": "R$ 23,00",
+   "ok": true,
+   "opts": 17
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Super Fama 500ml",
+   "orig": "R$ 28,00",
+   "novo": "R$ 28,00",
+   "ok": true,
+   "opts": 17
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí Montado",
+   "orig": "(pelas escolhas)",
+   "novo": "A partir deR$ 18,00",
+   "ok": true,
+   "opts": 12
+  },
+  {
+   "cat": "Açaí",
+   "item": "Açaí com Paçoca de 500ml (Promoção)",
+   "orig": "R$ 16,99",
+   "novo": "R$ 16,99",
+   "ok": true,
+   "opts": 0
+  },
+  {
+   "cat": "Açaí",
+   "item": "2 Açaís com Paçoca de 500ml (Promoção)",
+   "orig": "R$ 29,99",
+   "novo": "R$ 29,99",
    "ok": true,
    "opts": 0
   },
