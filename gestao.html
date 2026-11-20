@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gestão · Fama Burguer e Pizzaria</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f0b08">
+<link rel="icon" href="assets/img/logo-fama.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/css/admin.css?v=20261114c">
+<link rel="stylesheet" href="assets/css/sistema.css?v=20261120a">
+</head>
+<body class="pg-gestao">
+
+<!-- ============ ENTRAR ============ -->
+<section class="auth" id="telaLogin" hidden>
+  <div class="auth__card">
+    <img class="auth__logo" src="assets/img/logo-fama.png" alt="Logo Fama Burguer" width="88" height="88">
+    <h1>Gestão</h1>
+    <p class="auth__sub">Vendas, pedidos e mesas. Entre com o e-mail e senha do painel.</p>
+    <form id="formLogin" class="form" novalidate>
+      <div class="campo">
+        <label for="loginEmail">E-mail</label>
+        <input id="loginEmail" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <div class="campo">
+        <label for="loginSenha">Senha</label>
+        <div class="senha">
+          <input id="loginSenha" type="password" autocomplete="current-password" required>
+          <button type="button" class="senha__ver" data-ver="loginSenha" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <p class="msg msg--erro" id="loginErro" hidden></p>
+      <button class="btn btn--primario btn--bloco" type="submit" id="btnEntrar">Entrar</button>
+    </form>
+  </div>
+  <p class="auth__rodape"><a href="admin">← Painel</a></p>
+</section>
+
+<!-- ============ GESTÃO ============ -->
+<div class="app" id="telaPainel" hidden>
+  <header class="topo">
+    <div class="topo__marca">
+      <img src="assets/img/logo-fama.png" alt="" width="36" height="36">
+      <div><strong>Gestão da Fama</strong><span id="topoLoja"></span></div>
+    </div>
+    <div class="topo__acoes">
+      <a class="btn btn--fantasma btn--peq" href="cozinha">Cozinha</a>
+      <a class="btn btn--fantasma btn--peq esconde-cel" href="admin">Produtos</a>
+      <button class="btn btn--fantasma btn--peq" id="btnSair" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main class="gest">
+    <nav class="secoes" aria-label="Áreas da gestão">
+      <button type="button" class="secao is-ativa" data-secao="vendas" aria-current="page">📊 Vendas e pedidos</button>
+      <button type="button" class="secao" data-secao="mesas">🪑 Mesas e QR Code</button>
+      <a class="secao" href="admin">🍔 Produtos e cupons</a>
+    </nav>
+
+    <!-- ===== VENDAS ===== -->
+    <section id="secVendas" class="gest">
+      <div class="acoes-linha">
+        <div class="periodos" id="periodos">
+          <button type="button" data-p="hoje" class="is-ativa">Hoje</button>
+          <button type="button" data-p="ontem">Ontem</button>
+          <button type="button" data-p="7">7 dias</button>
+          <button type="button" data-p="30">30 dias</button>
+          <button type="button" data-p="mes">Este mês</button>
+        </div>
+        <button type="button" class="btn btn--fantasma btn--peq" id="btnCsv">Baixar planilha (CSV)</button>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="cartoes">
+        <div class="cartao"><h2 id="tituloGrafico">Vendas por hora</h2><div class="barras" id="grafico"></div></div>
+        <div class="cartao"><h2>Por canal e pagamento</h2><div class="divisao" id="divisao"></div></div>
+      </div>
+      <div class="cartao"><h2>Mais vendidos</h2><ol class="lista-rank" id="ranking"></ol></div>
+      <div class="cartao">
+        <h2>Pedidos</h2>
+        <div class="tabela-wrap"><table class="tabela">
+          <thead><tr><th>Nº</th><th>Hora</th><th>Canal</th><th>Cliente</th><th>Situação</th><th class="num">Total</th></tr></thead>
+          <tbody id="tabela"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ===== MESAS ===== -->
+    <section id="secMesas" class="gest" hidden>
+      <div class="acoes-linha">
+        <p class="dica" style="margin:0">Cada mesa tem um QR Code. O cliente aponta a câmera, faz o pedido pelo celular e ele cai direto na cozinha. O pagamento é no caixa.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn btn--fantasma btn--peq" id="btnImprimir">🖨️ Imprimir QR Codes</button>
+          <button type="button" class="btn btn--primario btn--peq" id="btnNovaMesa">＋ Nova mesa</button>
+        </div>
+      </div>
+      <div class="mesas" id="mesas"></div>
+    </section>
+  </main>
+</div>
+
+<div class="folha-qr" id="folhaQr"></div>
+<div class="aviso-flutuante" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="assets/vendor/supabase-2.118.0.min.js"></script>
+<script src="assets/js/fonte-dados.js?v=20261114c"></script>
+<script src="assets/js/acesso.js?v=20261120a"></script>
+<script src="assets/js/qr.js?v=20261120a"></script>
+<script src="assets/js/gestao.js?v=20261120a"></script>
+</body>
+</html>

@@ -24,7 +24,18 @@ formas de pagamento e contatos) vem **exclusivamente** do cardápio original. Na
 - **Modo leve** automático para aparelhos simples, economia de dados ou "reduzir movimento"
   (sem WebGL; o vídeo da montagem toca sob demanda). Pode ser trocado no rodapé.
 
-## Como publicar
+## Sistema de pedidos (delivery, mesa, cozinha e gestão)
+
+- **Delivery (`/`)**: o carrinho registra o pedido no sistema (função `criar_pedido`, que recalcula o preço no servidor)
+  e o cliente confirma pelo WhatsApp com o número do pedido. Em "Meus pedidos" ele acompanha o andamento.
+- **Mesa (`/mesa?m=CÓDIGO`)**: aberto pelo QR Code da mesa. O pedido vai direto para a cozinha; pagamento no caixa.
+- **Cozinha (`/cozinha`)**: pedidos por etapa (confirmar, novos, em preparo, prontos), alerta sonoro, tempo de preparo e
+  impressão da comanda. Entra com o mesmo e-mail e senha do painel.
+- **Gestão (`/gestao`)**: faturamento, ticket médio, vendas por hora/dia, canal e pagamento, mais vendidos, lista de pedidos
+  com planilha CSV, e cadastro das mesas com QR Codes para imprimir.
+- Pizzas meio a meio cobram o sabor de maior valor; sucos de 2 sabores, a média (`etapas.regra_preco` 1 e 2).
+
+
 
 É um site estático. Envie a pasta inteira para qualquer hospedagem (Netlify, Vercel, GitHub Pages, Hostinger…).
 Para testar no computador, rode um servidor local na pasta (abrir o `index.html` direto do disco desativa a camada 3D):

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cozinha · Fama Burguer e Pizzaria</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f0b08">
+<link rel="icon" href="assets/img/logo-fama.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/css/admin.css?v=20261114c">
+<link rel="stylesheet" href="assets/css/sistema.css?v=20261120a">
+</head>
+<body class="pg-cozinha">
+
+<!-- ============ ENTRAR ============ -->
+<section class="auth" id="telaLogin" hidden>
+  <div class="auth__card">
+    <img class="auth__logo" src="assets/img/logo-fama.png" alt="Logo Fama Burguer" width="88" height="88">
+    <h1>Cozinha</h1>
+    <p class="auth__sub">Entre com o mesmo e-mail e senha do painel.</p>
+    <form id="formLogin" class="form" novalidate>
+      <div class="campo">
+        <label for="loginEmail">E-mail</label>
+        <input id="loginEmail" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <div class="campo">
+        <label for="loginSenha">Senha</label>
+        <div class="senha">
+          <input id="loginSenha" type="password" autocomplete="current-password" required>
+          <button type="button" class="senha__ver" data-ver="loginSenha" aria-label="Mostrar senha">Mostrar</button>
+        </div>
+      </div>
+      <p class="msg msg--erro" id="loginErro" hidden></p>
+      <button class="btn btn--primario btn--bloco" type="submit" id="btnEntrar">Entrar</button>
+    </form>
+  </div>
+  <p class="auth__rodape"><a href="admin">← Painel</a></p>
+</section>
+
+<!-- ============ TELA DA COZINHA ============ -->
+<div class="app" id="telaPainel" hidden>
+  <header class="topo">
+    <div class="topo__marca">
+      <img src="assets/img/logo-fama.png" alt="" width="36" height="36">
+      <div><strong>Cozinha</strong><span id="relogio"></span></div>
+    </div>
+    <div class="topo__acoes">
+      <button class="btn btn--fantasma btn--peq" id="btnSom" type="button" aria-pressed="false">🔇 Som desligado</button>
+      <a class="btn btn--fantasma btn--peq esconde-cel" href="gestao">Vendas</a>
+      <a class="btn btn--fantasma btn--peq esconde-cel" href="admin">Painel</a>
+      <button class="btn btn--fantasma btn--peq" id="btnSair" type="button">Sair</button>
+    </div>
+  </header>
+
+  <p class="conexao" id="conexao" hidden></p>
+
+  <nav class="kds-abas" id="kdsAbas" aria-label="Etapas"></nav>
+  <main class="kds" id="kds" aria-live="polite"></main>
+</div>
+
+<div class="aviso-flutuante" id="toast" role="status" aria-live="polite" hidden></div>
+<div id="impressao" class="so-impressao"></div>
+
+<script src="assets/vendor/supabase-2.118.0.min.js"></script>
+<script src="assets/js/fonte-dados.js?v=20261114c"></script>
+<script src="assets/js/acesso.js?v=20261120a"></script>
+<script src="assets/js/cozinha.js?v=20261120a"></script>
+</body>
+</html>

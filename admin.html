@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="assets/css/admin.css?v=20261114c">
+<style>/* atalhos do sistema (vendas, mesas, cozinha) */ .secoes{overflow-x:auto;scrollbar-width:none}.secoes::-webkit-scrollbar{display:none}a.secao{display:inline-flex;align-items:center;text-decoration:none}</style>
 </head>
 <body>
 
@@ -82,6 +83,9 @@
     <nav class="secoes" id="secoes" aria-label="Áreas do painel">
       <button type="button" class="secao is-ativa" data-secao="produtos" aria-current="page">🍔 Produtos</button>
       <button type="button" class="secao" data-secao="cupons">🏷️ Cupons <b id="contaCupons">0</b></button>
+      <a class="secao" href="gestao">📊 Vendas</a>
+      <a class="secao" href="gestao#mesas">🪑 Mesas e QR</a>
+      <a class="secao" href="cozinha">👨‍🍳 Cozinha</a>
     </nav>
 
     <section class="bloco-secao" id="secProdutos">

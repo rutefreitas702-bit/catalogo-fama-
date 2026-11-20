@@ -9,6 +9,10 @@ window.iniciarFama = function () {
   var D = window.FAMA_DATA;
   var S = D.store;
   var G = D.groups;
+  /* modo mesa (QR Code): pedido vai direto para a cozinha e o pagamento é no caixa */
+  var MESA = window.FAMA_MODO === 'mesa' ? (window.FAMA_MESA || null) : null;
+  var PED = window.FamaPedidos || null;
+  var CART_KEY = MESA ? 'fama-mesa-cart' : 'fama-cart';
 
   /* Regra de preço para etapas com price_model 1 (ex.: pizza com 2 sabores).
      'maior' = cobra o sabor de maior valor; 'media' = média dos sabores.
@@ -25,9 +29,9 @@ window.iniciarFama = function () {
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  function money(v) { return BRL.format(Math.round(v * 100) / 100).replace(/ /g, ' '); }
+  function money(v) { return BRL.format(Math.round(v * 100) / 100).replace(/\u00a0/g, '\u0020'); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function norm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function norm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
   function trimT(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
   function imgSrc(k) {
     if (!k) return null;
@@ -431,9 +435,9 @@ window.iniciarFama = function () {
 
   /* ================= carrinho ================= */
   var cart = [];
-  try { cart = JSON.parse(store('fama-cart') || '[]') || []; } catch (e) { cart = []; }
-  cart = cart.filter(function (l) { return l && itemIndex[l.itemId]; });
-  function saveCart() { store('fama-cart', JSON.stringify(cart)); updateCartBtn(); }
+  try { cart = JSON.parse(store(CART_KEY) || '[]') || []; } catch (e) { cart = []; }
+  cart = cart.filter(function (l) { return l && itemIndex[l.itemId] && l.et; });
+  function saveCart() { store(CART_KEY, JSON.stringify(cart)); updateCartBtn(); }
   function cartSubtotal() { return cart.reduce(function (a, l) { return a + l.unit * l.qty; }, 0); }
   function updateCartBtn() {
     var n = cart.reduce(function (a, l) { return a + l.qty; }, 0);
@@ -452,7 +456,12 @@ window.iniciarFama = function () {
     var it = current.it;
     var thumb = it.img;
     var sum = summarize(it.steps, '', 0);
-    cart.push({ uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), itemId: it.id, title: trimT(it.t), cat: trimT(current.cat.t), img: thumb, qty: current.qty, unit: unitPrice(), sum: sum, obs: obs.trim() });
+    var et = it.steps.map(function (s, i) {
+      var m = current.sel[String(i)] || {}, o = {};
+      Object.keys(m).forEach(function (k) { if (m[k] > 0) o[k] = m[k]; });
+      return { g: s.g, o: o };
+    }).filter(function (x) { return Object.keys(x.o).length; });
+    cart.push({ et: et, uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), itemId: it.id, title: trimT(it.t), cat: trimT(current.cat.t), img: thumb, qty: current.qty, unit: unitPrice(), sum: sum, obs: obs.trim() });
     saveCart();
     closeLayer('#productSheet');
     var b = $('#openCart'); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump');
@@ -559,6 +568,7 @@ window.iniciarFama = function () {
         '<div><h4>' + esc(l.title) + '</h4><ul>' + det + '</ul>' + (l.obs ? '<p class="cline__obs">Obs.: ' + esc(l.obs) + '</p>' : '') + '</div>' +
         '<div class="cline__right"><span class="cline__price">' + money(l.unit * l.qty) + '</span><span class="stepper"><button type="button" data-cdec="' + l.uid + '" aria-label="Diminuir">−</button><output>' + l.qty + '</output><button type="button" data-cinc="' + l.uid + '" aria-label="Aumentar">+</button></span><button type="button" class="cline__rm" data-crm="' + l.uid + '">Remover</button></div></div>';
     }).join('');
+    if (MESA) { renderCartMesa(body, lines, sub, st); return; }
     var modes = [['entrega', 'Entrega', S.accept.delivery], ['retirada', 'Retirada', S.accept.take], ['local', 'No local', S.accept.local]].filter(function (m) { return m[2]; });
     var regionOpts = '<option value="">Selecione o bairro</option>' + S.regions.slice().sort(function (a, b) { return a.n.localeCompare(b.n, 'pt-BR'); })
       .map(function (r) { return '<option value="' + esc(r.n) + '"' + (r.n === checkout.region ? ' selected' : '') + '>' + esc(r.n) + ' — ' + money(r.p) + '</option>'; }).join('');
@@ -590,10 +600,131 @@ window.iniciarFama = function () {
       '<div class="field"><label for="coObs">Observações do pedido</label><textarea id="coObs" maxlength="200">' + esc(checkout.obs) + '</textarea></div>' +
       (issues.length ? '<p class="note note--warn">' + issues.join(' ') + '</p>' : '') +
       '<p class="pd__err" id="coErr" hidden></p>' +
-      '<a class="btn btn--ketchup btn--block" id="sendWhats" href="#" target="_blank" rel="noopener"' + (issues.length ? ' aria-disabled="true"' : '') + '>Enviar pedido pelo WhatsApp · ' + money(total) + '</a>' +
-      '<p class="note">O pedido abre no WhatsApp da loja (' + esc(fmtPhone(S.whatsapp)) + ') com todos os itens. A loja confirma o pedido e o total por lá.</p>' +
+      (PED ? '<button type="button" class="btn btn--ketchup btn--block" id="sendOrder"' + (issues.length ? ' disabled' : '') + '>Fazer pedido · ' + money(total) + '</button>' +
+        '<p class="note">O pedido entra no sistema da loja e você confirma pelo WhatsApp (' + esc(fmtPhone(S.whatsapp)) + '). Depois acompanhe o preparo em “Meus pedidos”.</p>' +
+        '<a class="link-btn" id="sendWhats" href="#" target="_blank" rel="noopener" hidden>Enviar só pelo WhatsApp</a>'
+      : '<a class="btn btn--ketchup btn--block" id="sendWhats" href="#" target="_blank" rel="noopener"' + (issues.length ? ' aria-disabled="true"' : '') + '>Enviar pedido pelo WhatsApp · ' + money(total) + '</a>' +
+        '<p class="note">O pedido abre no WhatsApp da loja (' + esc(fmtPhone(S.whatsapp)) + ') com todos os itens. A loja confirma o pedido e o total por lá.</p>') +
       '<button type="button" class="link-btn" id="clearCart">Esvaziar pedido</button></form>';
     updateWhatsHref();
+  }
+  function renderCartMesa(body, lines, sub, st) {
+    var issues = [];
+    if (!st.open) issues.push('A loja está fechada agora (' + st.label.replace('Fechado · ', '') + ').');
+    body.innerHTML = lines +
+      '<div class="totals"><div class="grand"><span>Total</span><span>' + money(sub) + '</span></div></div>' +
+      '<form class="form" id="coForm" novalidate>' +
+      '<p class="mesa-tag">' + esc(mesaNome()) + '</p>' +
+      '<div class="field"><label for="coName">Seu nome</label><input id="coName" type="text" autocomplete="name" value="' + esc(checkout.name) + '" required></div>' +
+      '<div class="field"><label for="coObs">Observações do pedido</label><textarea id="coObs" maxlength="200">' + esc(checkout.obs) + '</textarea></div>' +
+      (issues.length ? '<p class="note note--warn">' + issues.join(' ') + '</p>' : '') +
+      '<p class="pd__err" id="coErr" hidden></p>' +
+      '<button type="button" class="btn btn--ketchup btn--block" id="sendOrder"' + (issues.length ? ' disabled' : '') + '>Enviar para a cozinha · ' + money(sub) + '</button>' +
+      '<p class="note">O pedido vai direto para a cozinha. O pagamento é feito no caixa.</p>' +
+      '<button type="button" class="link-btn" id="clearCart">Esvaziar pedido</button></form>';
+  }
+  function mesaNome() { return MESA ? (MESA.nome ? MESA.nome : 'Mesa ' + MESA.numero) : ''; }
+  function payText() {
+    var pay = ({ dinheiro: 'Dinheiro', cartao: 'Cartão', pix: 'Pix' })[checkout.pay] || '';
+    if (checkout.pay === 'dinheiro' && checkout.change) pay += ' (troco para R$ ' + checkout.change + ')';
+    if (checkout.pay === 'cartao' && checkout.card) pay += ' – ' + checkout.card;
+    return pay;
+  }
+  function enderecoText() {
+    return [checkout.street, checkout.num].filter(Boolean).join(', ') + (checkout.comp ? ' – ' + checkout.comp : '') + (checkout.ref ? ' (Ref.: ' + checkout.ref + ')' : '');
+  }
+  /* envia o pedido para o sistema da loja (cozinha + painel) */
+  function sendOrder(btn) {
+    readCheckout();
+    var errs = MESA ? (checkout.name.trim() ? [] : ['Informe seu nome.']) : checkoutErrors();
+    var ce = $('#coErr');
+    if (errs.length) { ce.hidden = false; ce.textContent = errs.join(' '); return; }
+    var kup = MESA ? null : cupomCalc();
+    var payload = {
+      origem: MESA ? 'mesa' : 'delivery',
+      nome: checkout.name.trim(),
+      observacao: checkout.obs.trim(),
+      itens: cart.map(function (l) { return { produto: Number(l.itemId), qtd: l.qty, obs: l.obs || '', nome: l.title, etapas: l.et || [] }; })
+    };
+    if (MESA) payload.mesa = MESA.codigo;
+    else {
+      payload.modo = checkout.mode;
+      payload.pagamento = payText();
+      if (checkout.mode === 'entrega') { payload.bairro = checkout.region; payload.endereco = enderecoText(); }
+      if (kup && kup.ok) payload.cupom = kup.c.code;
+    }
+    btn.disabled = true; var txt = btn.textContent; btn.textContent = 'Enviando…'; ce.hidden = true;
+    PED.criar(payload).then(function (r) {
+      var texto = MESA ? '' : orderText(r);
+      PED.guardar(r, { mesa: MESA ? mesaNome() : null, modo: MESA ? 'mesa' : checkout.mode });
+      cart = []; saveCart();
+      checkout.obs = ''; store('fama-checkout', JSON.stringify(checkout));
+      renderOrderDone(r, texto);
+      atualizarMeusPedidos();
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = txt;
+      ce.hidden = false; ce.textContent = PED.erroTexto(e.codigo);
+      // sem conexão com o sistema: o cliente ainda pode mandar o pedido só pelo WhatsApp
+      var w = $('#sendWhats'); if (w && !MESA) { w.hidden = false; updateWhatsHref(); }
+    });
+  }
+  function renderOrderDone(r, texto) {
+    var body = $('#cartBody');
+    var conf = !MESA;
+    body.innerHTML = '<div class="done">' +
+      '<div class="done__badge">✓</div>' +
+      '<h3>Pedido nº ' + r.numero + (MESA ? ' enviado para a cozinha' : ' registrado') + '</h3>' +
+      '<p class="done__total">Total ' + money(Number(r.total)) + (r.taxa_a_confirmar ? ' + taxa de entrega a confirmar' : '') + '</p>' +
+      (conf ? '<p>Último passo: <b>confirme no WhatsApp da loja</b>. A cozinha começa assim que a loja confirmar.</p>' +
+        '<a class="btn btn--ketchup btn--block" href="' + waLink(texto) + '" target="_blank" rel="noopener">Confirmar no WhatsApp</a>'
+        : '<p>' + esc(mesaNome()) + ' · tempo estimado: ' + r.tempo + ' min. O pagamento é no caixa.</p>') +
+      '<button type="button" class="btn btn--ghost btn--block" id="verPedidos">Acompanhar meu pedido</button>' +
+      '<button type="button" class="link-btn" data-close>Voltar ao cardápio</button></div>';
+  }
+
+  /* ================= meus pedidos (acompanhamento) ================= */
+  var STATUS = {
+    aguardando: ['Aguardando confirmação da loja', 0],
+    novo: ['Recebido pela cozinha', 1],
+    preparando: ['Em preparo', 2],
+    pronto: ['Pronto', 3],
+    entregue: ['Finalizado', 4],
+    cancelado: ['Cancelado', -1]
+  };
+  function prontoTexto(p) {
+    return p.modo === 'entrega' ? 'Saiu para entrega' : p.modo === 'retirada' ? 'Pronto para retirar' : p.modo === 'mesa' ? 'Pronto! Já vai para a mesa' : 'Pronto';
+  }
+  var meus = [];
+  function atualizarMeusPedidos() {
+    if (!PED) return;
+    var rec = PED.recentes();
+    var b = $('#trackBtn');
+    if (!rec.length) { if (b) b.hidden = true; return; }
+    PED.acompanhar(rec.map(function (x) { return x.token; })).then(function (lista) {
+      meus = lista;
+      var ativos = lista.filter(function (p) { return ['entregue', 'cancelado'].indexOf(p.status) < 0; }).length;
+      if (b) { b.hidden = !lista.length; $('#trackN').textContent = ativos || ''; $('#trackN').hidden = !ativos; }
+      if (!$('#trackDrawer').hidden) renderMeusPedidos();
+    }).catch(function () { /* tenta de novo no próximo ciclo */ });
+  }
+  function renderMeusPedidos() {
+    var box = $('#trackBody');
+    if (!meus.length) { box.innerHTML = '<p class="empty">Nenhum pedido nas últimas 24 horas.</p>'; return; }
+    var passos = ['Recebido', 'Em preparo', 'Pronto', 'Finalizado'];
+    box.innerHTML = meus.map(function (p) {
+      var st = STATUS[p.status] || ['', 0], nivel = st[1];
+      var titulo = p.status === 'pronto' ? prontoTexto(p) : st[0];
+      var quando = new Date(p.criado_em);
+      var prev = p.status === 'preparando' && p.preparo_em ? new Date(new Date(p.preparo_em).getTime() + p.tempo * 60000) : null;
+      return '<article class="trk' + (nivel < 0 ? ' is-cancel' : '') + '">' +
+        '<header><b>Pedido nº ' + p.numero + '</b><span>' + quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + (p.mesa ? ' · Mesa ' + p.mesa : '') + '</span></header>' +
+        '<p class="trk__st">' + esc(titulo) + '</p>' +
+        (nivel >= 0 ? '<ol class="trk__bar">' + passos.map(function (n, i) { return '<li class="' + (nivel > i ? 'ok' : nivel === i + 1 ? 'ok' : '') + (nivel === i + 1 ? ' now' : '') + '">' + n + '</li>'; }).join('') + '</ol>' : '') +
+        (prev ? '<p class="trk__prev">Previsão: ' + prev.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</p>' : '') +
+        (p.status === 'aguardando' ? '<p class="trk__prev">Se ainda não confirmou, envie o pedido no WhatsApp da loja.</p>' : '') +
+        '<ul>' + (p.itens || []).map(function (i) { return '<li>' + i.qtd + '× ' + esc(i.nome) + '</li>'; }).join('') + '</ul>' +
+        '<footer>Total ' + money(Number(p.total)) + '</footer></article>';
+    }).join('');
   }
   function readCheckout() {
     var f = $('#coForm'); if (!f) return;
@@ -605,9 +736,9 @@ window.iniciarFama = function () {
     });
     store('fama-checkout', JSON.stringify(checkout));
   }
-  function orderText() {
+  function orderText(reg) {
     var sub = cartSubtotal(), fee = regionFee(), kup = cupomCalc(), off = kup && kup.ok ? kup.off : 0;
-    var L = ['*Pedido — Fama Burguer e Pizzaria*', ''];
+    var L = [reg ? '*Pedido nº ' + reg.numero + ' — Fama Burguer e Pizzaria*' : '*Pedido — Fama Burguer e Pizzaria*', ''];
     cart.forEach(function (l) {
       L.push('*' + l.qty + '× ' + l.title + '* — ' + money(l.unit * l.qty));
       (l.sum || []).forEach(function (s) { L.push('   ' + s.g + ': ' + s.opts.map(function (o) { return (o.q > 1 ? o.q + '× ' : '') + o.t; }).join(', ')); });
@@ -616,7 +747,7 @@ window.iniciarFama = function () {
     L.push('', 'Subtotal: ' + money(sub));
     if (checkout.mode === 'entrega') L.push('Taxa de entrega (' + (checkout.region || '—') + '): ' + money(fee));
     if (off) L.push('Cupom ' + kup.c.code + ' (' + cupomTitulo(kup.c) + (kup.c.first ? ', primeiro pedido' : '') + '): − ' + money(off));
-    L.push('*Total: ' + money(Math.max(0, sub + fee - off)) + '*', '');
+    L.push('*Total: ' + money(reg ? Number(reg.total) : Math.max(0, sub + fee - off)) + '*' + (reg && reg.taxa_a_confirmar ? ' (+ taxa de entrega a confirmar)' : ''), '');
     L.push('Tipo: ' + ({ entrega: 'Entrega', retirada: 'Retirada', local: 'Consumo no local' })[checkout.mode]);
     L.push('Nome: ' + checkout.name);
     if (checkout.mode === 'entrega') L.push('Endereço: ' + [checkout.street, checkout.num].filter(Boolean).join(', ') + (checkout.comp ? ' – ' + checkout.comp : '') + ' – ' + checkout.region + (checkout.ref ? ' (Ref.: ' + checkout.ref + ')' : ''));
@@ -636,9 +767,12 @@ window.iniciarFama = function () {
     }
     return e;
   }
-  function updateWhatsHref() { var a = $('#sendWhats'); if (a) a.href = waLink(orderText()); }
+  function updateWhatsHref() { var a = $('#sendWhats'); if (a && !MESA) a.href = waLink(orderText()); }
+  function abrirMeusPedidos() { renderMeusPedidos(); openLayer('#trackDrawer'); atualizarMeusPedidos(); }
   function onCartClick(e) {
-    var t = e.target.closest('[data-cinc],[data-cdec],[data-crm],#clearCart,#sendWhats,[data-cupom],#cupAplicar,#cupRemover'); if (!t) return;
+    var t = e.target.closest('[data-cinc],[data-cdec],[data-crm],#clearCart,#sendWhats,#sendOrder,#verPedidos,[data-cupom],#cupAplicar,#cupRemover'); if (!t) return;
+    if (t.id === 'sendOrder') { e.preventDefault(); if (!t.disabled) sendOrder(t); return; }
+    if (t.id === 'verPedidos') { closeLayer('#cartDrawer'); abrirMeusPedidos(); return; }
     if (t.dataset.cupom) { readCheckout(); aplicarCupom(t.dataset.cupom, 'carrinho'); renderCart(); return; }
     if (t.id === 'cupRemover') { readCheckout(); checkout.coupon = ''; store('fama-checkout', JSON.stringify(checkout)); renderCupons(); renderCart(); return; }
     if (t.id === 'cupAplicar') {
@@ -737,7 +871,7 @@ window.iniciarFama = function () {
   function goToCat(id) {
     var target = $('#cat-' + id); if (!target) return;
     openStack.slice().forEach(closeLayer);
-    var y = target.getBoundingClientRect().top + window.scrollY - ($('#topbar').offsetHeight + $('#catnav').offsetHeight + 8);
+    var y = target.getBoundingClientRect().top + window.scrollY - ($('#topbar').offsetHeight + $('#catnav').offsetHeight + (MESA ? 38 : 0) + 8);
     if (lenis) lenis.scrollTo(y, { duration: 1.2 }); else window.scrollTo({ top: y, behavior: reduceMotion ? 'auto' : 'smooth' });
   }
   function scrollToSel(sel) {
@@ -750,7 +884,7 @@ window.iniciarFama = function () {
   var liteStored = store('fama-lite');
   var conn = navigator.connection || {};
   var weakDevice = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) || conn.saveData;
-  var LITE = liteStored ? liteStored === '1' : (reduceMotion || !!weakDevice);
+  var LITE = MESA ? true : (liteStored ? liteStored === '1' : (reduceMotion || !!weakDevice));
   if (LITE) document.body.classList.add('is-lite');
   else document.body.classList.add('is-intro');
 
@@ -1054,6 +1188,12 @@ window.iniciarFama = function () {
     aplicarCupom(b.dataset.usarCupom);
   });
   updateCartBtn();
+  if (PED) {
+    $('#trackBtn').addEventListener('click', abrirMeusPedidos);
+    atualizarMeusPedidos();
+    setInterval(function () { if (!document.hidden) atualizarMeusPedidos(); }, 15000);
+  }
+  if (MESA) { var mb = $('#mesaBanner'); if (mb) { mb.hidden = false; mb.querySelector('b').textContent = mesaNome(); } }
   setupSauce();
   setupFloaters();
   setupReveal();
