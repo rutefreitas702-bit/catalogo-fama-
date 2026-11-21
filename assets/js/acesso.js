@@ -42,6 +42,8 @@
       if (entrou) return;
       try {
         var a = await carregarLoja();
+        // login da cozinha só abre a tela da cozinha
+        if (opcoes.soAdministracao && a.papel === 'cozinha') { location.replace('cozinha'); return; }
         entrou = true;
         tela('painel');
         opcoes.aoEntrar(a.lojas, a.papel);

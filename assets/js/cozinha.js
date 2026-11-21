@@ -192,8 +192,10 @@
   });
 
   window.FamaAcesso.iniciar({
-    aoEntrar: function (l) {
+    aoEntrar: function (l, papel) {
       loja = l;
+      // equipe da cozinha não vê os atalhos da administração
+      if (papel === 'cozinha') document.querySelectorAll('.topo__acoes a').forEach(function (a) { a.remove(); });
       var salvo = null; try { salvo = localStorage.getItem('fama-cozinha-som'); } catch (e) { /* ok */ }
       ligarSom(salvo === '1');
       $('#btnSom').addEventListener('click', function () { ligarSom(!somLigado); if (somLigado) bip(); });

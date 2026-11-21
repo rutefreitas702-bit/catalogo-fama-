@@ -230,6 +230,7 @@
   }
 
   window.FamaAcesso.iniciar({
+    soAdministracao: true,
     aoEntrar: function (l) {
       loja = l;
       $('#topoLoja').textContent = loja.nome;

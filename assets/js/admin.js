@@ -132,6 +132,7 @@
       return;
     }
     st.loja = r.data[0].lojas; st.papel = r.data[0].papel;
+    if (st.papel === 'cozinha') { location.replace('cozinha'); return; } // login da cozinha não abre o painel
     $('#topoLoja').textContent = st.loja.nome;
     mostrarTela('painel');
     await recarregar();
