@@ -5,9 +5,11 @@
   'use strict';
 
   var CFG = root.FamaDados.SUPABASE;
-  var sb = root.supabase.createClient(CFG.url, CFG.chave, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
-  });
+  /* a cozinha guarda o login num lugar próprio: entrar no painel não abre a cozinha
+   * e entrar na cozinha não abre o painel (cada tela pede o seu login no aparelho) */
+  var auth = { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false };
+  if (root.FAMA_SESSAO) auth.storageKey = root.FAMA_SESSAO;
+  var sb = root.supabase.createClient(CFG.url, CFG.chave, { auth: auth });
 
   function $(s) { return document.querySelector(s); }
   function erroTexto(e) {
